@@ -83,6 +83,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 		TokenInfo: ti,
 		Request:   tgr.Request,
 	}
+
 	switch rt {
 	case oauth2.Code:
 		codeExp := m.codeExp

@@ -1,5 +1,11 @@
 package core
 
+import (
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
+)
+
 // {
 // 	"iss": "http://server.example.com",
 // 	"sub": "248289761001",
@@ -9,10 +15,23 @@ package core
 // 	"iat": 1311280970
 //   }
 type IDToken struct {
-	Issuer  string `json:"iss"`
-	Sub     string `json:"sub"`
-	Aud     string `json:"aud"`
-	Nonce   string `json:"nonce"`
-	Expire  int32  `json:"exp"`
-	IssueAt int32  `json:"iat"`
+	Issuer  string `json:"iss,omitempty"`
+	Sub     string `json:"sub,omitempty"`
+	Aud     string `json:"aud,omitempty"`
+	Nonce   string `json:"nonce,omitempty"`
+	Expire  int64  `json:"exp,omitempty"`
+	IssueAt int64  `json:"iat,omitempty"`
+}
+
+func (idt *IDToken) GetClaims() jwt.MapClaims {
+	result := jwt.MapClaims{}
+	result["iss"] = idt.Issuer
+	result["sub"] = idt.Sub
+	result["aud"] = idt.Aud
+	if !strings.EqualFold(idt.Nonce, "") {
+		result["nonce"] = idt.Nonce
+	}
+	result["exp"] = idt.Expire
+	result["iat"] = idt.IssueAt
+	return result
 }

@@ -26,6 +26,15 @@ func (ds *DbUserStore) GetUserByAccount(account string) (*models.User, error) {
 	}
 	return user, err
 }
+func (ds *DbUserStore) GetUserByID(id string) (*models.User, error) {
+	user := &models.User{}
+
+	err := ds.db.Where("Id=?", id).First(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, err
+}
 func (ds *DbUserStore) GetUserPasswordHash(account string) (string, error) {
 	user := &models.User{}
 

@@ -4,7 +4,7 @@ type JWKS struct {
 	Keys []interface{} `json:"keys"`
 }
 type JWTKey struct {
-	KeyType string `json:"kty`
+	KeyType string `json:"kty"`
 	Use     string `json:"use"`
 	Kid     []byte `json:"kid"`
 	//	X5t string `json:"x5t"`

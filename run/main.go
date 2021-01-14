@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -12,6 +13,7 @@ import (
 	log "github.com/cihub/seelog"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/server"
@@ -49,12 +51,14 @@ func main() {
 	pi, err := x509.ParsePKIXPublicKey(block.Bytes)
 	jwks := &core.JWKS{}
 	jwk := core.NewRSAJWTKey()
-	jwk.N = base64.URLEncoding.EncodeToString(pi.(*rsa.PublicKey).N.Bytes())
+	jwk.N = base64.RawURLEncoding.EncodeToString(pi.(*rsa.PublicKey).N.Bytes())
 	var buf = make([]byte, 8)
 	e := uint64(pi.(*rsa.PublicKey).E)
-	binary.LittleEndian.PutUint64(buf, e)
+
+	binary.BigEndian.PutUint64(buf, e)
+	bytes.TrimLeft(buf, "\x00")
 	//base64.URLEncoding.EncodeToString()
-	jwk.E = base64.URLEncoding.EncodeToString(buf)
+	jwk.E = base64.RawURLEncoding.EncodeToString(buf)
 
 	jwtAccessGenerate := generates.NewJWTAccessGenerate("", privateKeyByets, jwt.SigningMethodRS256)
 	jwk.Alg = jwtAccessGenerate.SignedMethod.Alg()
@@ -87,7 +91,31 @@ func main() {
 		return true, nil
 	})
 	srv.SetUserAuthorizationHandler(userAuthorizeHandler)
+	srv.SetExtensionFieldsHandler(func(ti oauth2.TokenInfo) (fieldsValue map[string]interface{}) {
+		ext := make(map[string]interface{})
+		idToken := &core.IDToken{
+			Issuer:  "http://localhost:9096",
+			Sub:     ti.GetUserID(),
+			Aud:     ti.GetClientID(),
+			Expire:  ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Unix(),
+			IssueAt: ti.GetAccessCreateAt().Unix(),
+		}
+		claims := idToken.GetClaims()
+		signMethod := jwt.SigningMethodRS256
+		token := jwt.NewWithClaims(signMethod, claims)
 
+		key, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyByets)
+		if err != nil {
+			log.Errorf("签名ID_token错误,%s", err.Error())
+		}
+
+		tk, err := token.SignedString(key)
+		if err != nil {
+			log.Errorf("签名ID_token错误,%s", err.Error())
+		}
+		ext["id_token"] = tk
+		return ext
+	})
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Infof("Internal Error:", err.Error())
 		return
@@ -104,6 +132,7 @@ func main() {
 	http.HandleFunc("/connect/authorize", handlers.Authorize)
 
 	http.HandleFunc("/connect/token", handlers.Token)
+	http.HandleFunc("/connect/userinfo", handlers.UserInfoHandler)
 
 	http.HandleFunc("/test", handlers.Test)
 	http.HandleFunc("/.well-known/openid-configuration", handlers.WellknownHandler)

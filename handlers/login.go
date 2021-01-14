@@ -17,7 +17,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	if _, exist := store.Get("LoggedInUserID"); exist {
+		w.Header().Set("Location", "/auth")
+		w.WriteHeader(http.StatusFound)
+		return
+	}
 	if r.Method == "POST" {
 		if r.Form == nil {
 			if err := r.ParseForm(); err != nil {
