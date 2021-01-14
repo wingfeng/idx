@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -418,19 +418,25 @@ func (m *Manager) LoadRefreshToken(ctx context.Context, refresh string) (oauth2.
 	}
 	return ti, nil
 }
-func (m *Manager) validateURI(cli *idxmodels.Client, uri string) error {
-	uri = strings.ToLower(uri)
+func (m *Manager) validateURI(cli *idxmodels.Client, rawuri string) error {
+	url, err := url.Parse(rawuri)
+	if err != nil {
+		log.Errorf("传入URL错误!%s", url)
+	}
+
 	allowUris, err := m.clientStore.GetClientRedirectUris(cli.ID)
 	if err != nil {
 		log.Error("校验返回Uri错误!")
 	}
 	for _, s := range allowUris {
-		s = strings.ToLower(s)
-		if strings.EqualFold(s, uri) {
+
+		surl, _ := url.Parse(s)
+		//当scheme和host都相同就确认可以返回。
+		if strings.EqualFold(url.Scheme, surl.Scheme) && strings.EqualFold(url.Host, surl.Host) {
 			return nil
 		}
 	}
-	return fmt.Errorf("不合法的Uri:%s", uri)
+	return log.Errorf("不合法的Uri:%s", rawuri)
 }
 
 // get grant type config

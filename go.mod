@@ -8,7 +8,9 @@ require (
 	github.com/go-oauth2/oauth2/v4 v4.2.0
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/labstack/gommon v0.3.0
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	gopkg.in/guregu/null.v4 v4.0.0
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.9
 )

@@ -34,12 +34,14 @@ func Sync2Db(x *gorm.DB) {
 		new(IDentityClaims),
 		new(IDentityProperties),
 		new(IDentityResources),
-
+		new(OrganizationUnit),
 		new(PersistedGrants),
-
+		new(RoleClaims),
+		new(Role),
 		new(UserClaims),
 		new(UserLogins),
-
+		new(UserRoles),
+		new(User),
 		new(UserTokens),
 	)
 	if err != nil {

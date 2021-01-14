@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/gommon/log"
+	log "github.com/cihub/seelog"
 	"github.com/wingfeng/idx/models"
 	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/store"
+	"github.com/wingfeng/idx/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -74,14 +75,49 @@ func TestSeedData(t *testing.T) {
 	//初始化DB
 	db = GetDB("mysql", "root:123456@tcp(localhost:3306)/sso?&parseTime=true")
 	models.Sync2Db(db)
+	ou := &models.OrganizationUnit{}
+	ou.ID = "1328680589330485248"
+	ou.Name = "翼火工作室"
+	ou.DisplayName = "翼火工作室"
 
+	err := db.Save(ou).Error
+	if err != nil {
+		panic(err)
+	}
+
+	user := &models.User{}
+	user.ID = "7a45cb54-b0ff-4ecd-95b9-074d33aaac1e"
+	user.Account = "admin"
+	user.DisplayName = "管理员"
+	user.Email = "admin@fire.loc"
+	user.OUID = ou.ID
+	user.OU = ou.DisplayName
+
+	user.PasswordHash = utils.GenHashedPWD("fire@123")
+
+	err = db.Save(user).Error
+	if err != nil {
+		panic(err)
+	}
+	role := &models.Role{}
+
+	role.ID = "d4d1a7f6-9f33-4ed6-a320-df3754c6e43b"
+	role.Name = "SystemAdmin"
+	addRole(role)
+	addUserRole(user.ID, ou.ID, role.ID)
+	role = &models.Role{}
+
+	role.ID = "d4d1a7f6-9f33-4ed6-a320-df3754c6e43c"
+	role.Name = "科室主任"
+	addRole(role)
+	addUserRole(user.ID, ou.ID, role.ID)
 	client := &models.Client{
-		ID:                               2,
-		ClientID:                         "222222",
+		ID:                               3,
+		ClientID:                         "local_test",
 		Enabled:                          true,
 		ProtocolType:                     "oidc",
 		RequireClientSecret:              false,
-		ClientName:                       "go Client",
+		ClientName:                       "Localhost Client",
 		RequireConsent:                   true,
 		AllowRememberConsent:             true,
 		AlwaysIncludeUserClaimsInIDToken: false,
@@ -103,21 +139,22 @@ func TestSeedData(t *testing.T) {
 
 	db.Save(client)
 	cg := &models.ClientGrantTypes{
-		ID:        1,
-		ClientID:  1,
-		GrantType: "implicit",
+		ID:        2,
+		ClientID:  client.ID,
+		GrantType: "authorization_code",
 	}
 
-	err := db.Save(cg).Error
+	err = db.Save(cg).Error
 	if err != nil {
 		panic(err)
 	}
 
-	addRedirectURI(1, "http://localhost:9094/oauth2", client.ID)
-	addRedirectURI(2, "http://localhost:9000", client.ID)
-	addClientScope(1, "openid", client.ID)
-	addClientScope(2, "profile", client.ID)
-	addClientScope(3, "roles", client.ID)
+	addRedirectURI(3, "http://localhost:9094/oauth2", client.ID)
+	addRedirectURI(4, "http://localhost:9000/", client.ID)
+	addClientScope(3, "openid", client.ID)
+	addClientScope(4, "profile", client.ID)
+	addClientScope(5, "email", client.ID)
+	addClientScope(6, "roles", client.ID)
 }
 func addRedirectURI(id int, uri string, clientid int) {
 
@@ -141,6 +178,26 @@ func addClientScope(id int, scope string, clientid int) {
 	}
 
 	err := db.Save(sc).Error
+	if err != nil {
+		panic(err)
+	}
+}
+func addUserRole(uid, ouid, rid string) {
+
+	ur := &models.UserRoles{
+		RoleID: rid,
+		UserID: uid,
+		OUID:   ouid,
+	}
+	//联合主键的直接用engine来处理
+	err := db.Save(ur).Error
+	if err != nil {
+		panic(err)
+	}
+}
+func addRole(role *models.Role) {
+
+	err := db.Save(role).Error
 	if err != nil {
 		panic(err)
 	}

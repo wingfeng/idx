@@ -10,3 +10,8 @@ type ClientIDPRestrictions struct {
 	Clients      Client `gorm:"association_foreignkey:ClientId;foreignkey:Id"`
 	utils.Record `gorm:"embedded"`
 }
+
+//TableName 数据表名称
+func (m *ClientIDPRestrictions) TableName() string {
+	return "client_idp_restrictions"
+}
