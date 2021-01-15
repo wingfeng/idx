@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"crypto/x509"
+	"crypto/rsa"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 )
+
+var PublicKey *rsa.PublicKey
 
 func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	header := r.Header.Get("Authorization")
@@ -22,19 +22,7 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		publicKeyBytes, err := ioutil.ReadFile("../certs/rsa_2048_pub.pem")
-		if err != nil {
-			log.Errorf("读取公钥错误!,Err:%s", err.Error())
-		}
-		block, _ := pem.Decode(publicKeyBytes)
-		if block == nil {
-			log.Error("public key error")
-		}
-		// 解析公钥
-		pi, err := x509.ParsePKIXPublicKey(block.Bytes)
-
-		return pi, err
+		return PublicKey, nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

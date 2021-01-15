@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	log "github.com/cihub/seelog"
+	"github.com/magiconair/properties/assert"
 	"github.com/wingfeng/idx/models"
 	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/store"
@@ -69,12 +70,15 @@ func GetDB(driver string, connection string) *gorm.DB {
 
 var db *gorm.DB
 
-func TestSeedData(t *testing.T) {
-	//	node, err := snowflake.NewNode(1)
-
+func initTest() {
 	//初始化DB
 	db = GetDB("mysql", "root:123456@tcp(localhost:3306)/sso?&parseTime=true")
 	models.Sync2Db(db)
+}
+func TestSeedData(t *testing.T) {
+	//	node, err := snowflake.NewNode(1)
+	initTest()
+
 	ou := &models.OrganizationUnit{}
 	ou.ID = "1328680589330485248"
 	ou.Name = "翼火工作室"
@@ -201,4 +205,13 @@ func addRole(role *models.Role) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestGetClientScopes(t *testing.T) {
+	initTest()
+	cs := &store.ClientStore{
+		DB: db,
+	}
+	scopes := cs.GetClientScopes("local_test")
+	assert.Equal(t, len(scopes), 4)
 }

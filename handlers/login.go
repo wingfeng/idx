@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/go-session/session"
 	"github.com/wingfeng/idx/store"
@@ -56,14 +55,4 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	outputHTML(w, r, "../static/login.html")
-}
-func outputHTML(w http.ResponseWriter, req *http.Request, filename string) {
-	file, err := os.Open(filename)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	defer file.Close()
-	fi, _ := file.Stat()
-	http.ServeContent(w, req, file.Name(), fi.ModTime(), file)
 }

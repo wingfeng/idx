@@ -3,11 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <title>Auth</title>
-    <link
-      rel="stylesheet"
-      href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-    />
-    <script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+  
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
   </head>
 
@@ -15,15 +13,17 @@
     <div class="container">
       <div class="jumbotron">
         <form action="/connect/authorize" method="POST">
-          <h1>Authorize</h1>
-          <p>The client would like to perform actions on your behalf.</p>
-          <p>
+          <h1>授权</h1>
+          <p>应用{{.client_id}}需要你授权访问以下资源</p>
+        
+          <hr/>
+          <p>Scope:{{.scope}} </p>
             <button
               type="submit"
               class="btn btn-primary btn-lg"
               style="width:200px;"
             >
-              Allow
+              确认
             </button>
           </p>
         </form>
