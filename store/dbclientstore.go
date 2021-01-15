@@ -2,8 +2,10 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	idxmodels "github.com/wingfeng/idx/models"
+	"github.com/wingfeng/idx/utils"
 	"gorm.io/gorm"
 )
 
@@ -38,9 +40,16 @@ func (cs *ClientStore) GetClientRedirectUris(id int) ([]string, error) {
 	}
 	return sURIs, err
 }
-func (cs *ClientStore) ValidateSecret(secret string) error {
+func (cs *ClientStore) ValidateSecret(clientId, secret string) error {
+	key := utils.HashString(secret)
+	var count int64
+	err := cs.DB.Table("client_secrets as cs ").Select("Count(1)").Joins("join clients as c on cs.ClientId=c.Id").
+		Where("c.ClientId=? and cs.Value=? and cs.Expiration>Now()", clientId, key).Count(&count).Error
+	if err == nil && count < 1 {
+		err = fmt.Errorf("Client %s Secret not validate", clientId)
+	}
 	//验证Secret
-	return nil
+	return err
 }
 
 func (cs *ClientStore) GetClientScopes(clientID string) []string {

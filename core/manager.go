@@ -207,7 +207,7 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	// 		return nil, errors.ErrInvalidClient
 	// 	}
 	// } else
-	if m.clientStore.ValidateSecret(tgr.ClientSecret) != nil {
+	if m.clientStore.ValidateSecret(tgr.ClientID, tgr.ClientSecret) != nil {
 		return nil, errors.ErrInvalidClient
 	}
 	if tgr.RedirectURI != "" {

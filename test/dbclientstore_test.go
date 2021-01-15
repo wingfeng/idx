@@ -117,12 +117,12 @@ func TestSeedData(t *testing.T) {
 	addRole(role)
 	addUserRole(user.ID, ou.ID, role.ID)
 	client := &models.Client{
-		ID:                               3,
-		ClientID:                         "local_test",
+		ID:                               2,
+		ClientID:                         "222222",
 		Enabled:                          true,
 		ProtocolType:                     "oidc",
 		RequireClientSecret:              false,
-		ClientName:                       "Localhost Client",
+		ClientName:                       "222222 Client",
 		RequireConsent:                   true,
 		AllowRememberConsent:             true,
 		AlwaysIncludeUserClaimsInIDToken: false,
@@ -153,13 +153,13 @@ func TestSeedData(t *testing.T) {
 		panic(err)
 	}
 
-	addRedirectURI(3, "http://localhost:9094/oauth2", client.ID)
-	addRedirectURI(4, "http://localhost:9000/", client.ID)
-	addClientScope(3, "openid", client.ID)
-	addClientScope(4, "profile", client.ID)
-	addClientScope(5, "email", client.ID)
-	addClientScope(6, "roles", client.ID)
-	addClientScecret("local_secret", client.ID)
+	addRedirectURI("http://localhost:9094/oauth2", client.ID)
+	addRedirectURI("http://localhost:9000/", client.ID)
+	addClientScope("openid", client.ID)
+	addClientScope("profile", client.ID)
+	addClientScope("email", client.ID)
+	addClientScope("roles", client.ID)
+	addClientScecret("22222222", client.ID)
 }
 func addClientScecret(secret string, clientid int) {
 	sc := &models.ClientSecrets{
@@ -174,10 +174,10 @@ func addClientScecret(secret string, clientid int) {
 		panic(err)
 	}
 }
-func addRedirectURI(id int, uri string, clientid int) {
+func addRedirectURI(uri string, clientid int) {
 
 	redUris := &models.ClientRedirectURIs{
-		ID:          id,
+
 		RedirectURI: uri,
 		ClientID:    clientid,
 	}
@@ -188,9 +188,9 @@ func addRedirectURI(id int, uri string, clientid int) {
 		panic(err)
 	}
 }
-func addClientScope(id int, scope string, clientid int) {
+func addClientScope(scope string, clientid int) {
 	sc := &models.ClientScopes{
-		ID:       id,
+
 		Scope:    scope,
 		ClientID: clientid,
 	}
@@ -228,4 +228,12 @@ func TestGetClientScopes(t *testing.T) {
 	}
 	scopes := cs.GetClientScopes("local_test")
 	assert.Equal(t, len(scopes), 4)
+}
+func TestValidateSecret(t *testing.T) {
+	initTest()
+	cs := &store.ClientStore{
+		DB: db,
+	}
+	err := cs.ValidateSecret("local_test", "local_secret")
+	assert.Equal(t, nil, err)
 }
