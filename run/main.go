@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/cihub/seelog"
 	log "github.com/cihub/seelog"
 
 	"github.com/dgrijalva/jwt-go"
@@ -90,14 +88,14 @@ func main() {
 	srv.SetResponseErrorHandler(func(re *errors.Response) {
 		log.Infof("Response Error:", re.Error.Error())
 	})
-	htmlTplEngine := template.New("htmlTplEngine")
-	// 模板根目录下的模板文件 一些公共文件
-	_, htmlTplEngineErr := htmlTplEngine.ParseGlob("../static/*.html")
-	if nil != htmlTplEngineErr {
-		seelog.Errorf("解析html模板错误,Error:%s", htmlTplEngineErr.Error())
-	}
+	// htmlTplEngine := template.New("htmlTplEngine")
+	// // 模板根目录下的模板文件 一些公共文件
+	// _, htmlTplEngineErr := htmlTplEngine.ParseGlob("../static/*.html")
+	// if nil != htmlTplEngineErr {
+	// 	seelog.Errorf("解析html模板错误,Error:%s", htmlTplEngineErr.Error())
+	// }
 	handlers.Srv = srv
-	handlers.HTMLTemplate = htmlTplEngine
+	//handlers.HTMLTemplate = htmlTplEngine
 
 	http.HandleFunc("/login", handlers.LoginHandler)
 	http.HandleFunc("/auth", handlers.AuthHandler)
@@ -111,6 +109,7 @@ func main() {
 	http.HandleFunc("/.well-known/openid-configuration", handlers.WellknownHandler)
 	http.HandleFunc("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
 	http.HandleFunc("/connect/endsession", handlers.LogoutHandler)
+	http.HandleFunc("/connect/revocation", handlers.RevocateHandler)
 	log.Infof("Server is running at 9096 port.")
 	log.Error(http.ListenAndServe(fmt.Sprintf(":%d", option.Port), nil))
 }

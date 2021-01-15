@@ -1,4 +1,4 @@
-package store
+package test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/magiconair/properties/assert"
@@ -143,7 +144,6 @@ func TestSeedData(t *testing.T) {
 
 	db.Save(client)
 	cg := &models.ClientGrantTypes{
-		ID:        2,
 		ClientID:  client.ID,
 		GrantType: "authorization_code",
 	}
@@ -159,6 +159,20 @@ func TestSeedData(t *testing.T) {
 	addClientScope(4, "profile", client.ID)
 	addClientScope(5, "email", client.ID)
 	addClientScope(6, "roles", client.ID)
+	addClientScecret("local_secret", client.ID)
+}
+func addClientScecret(secret string, clientid int) {
+	sc := &models.ClientSecrets{
+		Type:     "SHA256",
+		ClientID: clientid,
+	}
+	sc.Value = utils.HashString(secret)
+	sc.Expiration = time.Now().AddDate(1, 0, 0)
+
+	err := db.Save(sc).Error
+	if err != nil {
+		panic(err)
+	}
 }
 func addRedirectURI(id int, uri string, clientid int) {
 

@@ -247,6 +247,7 @@ func (s *Server) GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) m
 
 // HandleAuthorizeRequest the authorization request handling
 func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) error {
+
 	ctx := r.Context()
 
 	req, err := s.ValidationAuthorizeRequest(r)

@@ -2,6 +2,7 @@ module github.com/wingfeng/idx
 
 go 1.15
 
+replace github.com/go-oauth2/oauth2/v4 v4.2.0 => /home/wing/git_repos/oauth2
 require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -15,3 +16,4 @@ require (
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.9
 )
+

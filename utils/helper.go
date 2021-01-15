@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"strings"
 
 	"github.com/labstack/gommon/log"
@@ -25,4 +27,10 @@ func GetDB(driver string, connection string) *gorm.DB {
 	}
 
 	return x
+}
+
+func HashString(s string) string {
+	h := sha256.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }

@@ -7,7 +7,7 @@ import (
 
 //Sync2Db 将struct同步数据结构到数据库
 func Sync2Db(x *gorm.DB) {
-	x.DisableForeignKeyConstraintWhenMigrating = true
+	//	x.DisableForeignKeyConstraintWhenMigrating = true
 
 	// 同步结构体与数据表
 	err := x.AutoMigrate(

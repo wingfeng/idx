@@ -4,11 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-session/session"
 )
-
-var Srv *server.Server
 
 func Authorize(w http.ResponseWriter, r *http.Request) {
 	store, err := session.Start(r.Context(), w, r)

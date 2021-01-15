@@ -7,7 +7,7 @@ import (
 
 // Client [...]
 type Client struct {
-	ID                                int       `gorm:"primary_key;autoIncrement;column:Id;type:int(11);not null"`
+	ID                                int       `gorm:"primary_key;auto_Increment;column:Id;not null"`
 	Enabled                           bool      `gorm:"column:Enabled;type:tinyint(1);not null"`
 	ClientID                          string    `gorm:"unique;column:ClientId;type:varchar(200);not null"`
 	ProtocolType                      string    `gorm:"column:ProtocolType;type:varchar(200);not null"`

@@ -39,7 +39,7 @@ func (cs *ClientStore) GetClientRedirectUris(id int) ([]string, error) {
 	return sURIs, err
 }
 func (cs *ClientStore) ValidateSecret(secret string) error {
-	//验证S
+	//验证Secret
 	return nil
 }
 
