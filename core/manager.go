@@ -8,13 +8,16 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
-	"github.com/go-oauth2/oauth2/v4"
-	"github.com/go-oauth2/oauth2/v4/errors"
-	"github.com/go-oauth2/oauth2/v4/generates"
-	"github.com/go-oauth2/oauth2/v4/manage"
-	"github.com/go-oauth2/oauth2/v4/models"
+	"github.com/dgrijalva/jwt-go"
+
 	idxmodels "github.com/wingfeng/idx/models"
+	"github.com/wingfeng/idx/oauth2"
+	"github.com/wingfeng/idx/oauth2/errors"
+	"github.com/wingfeng/idx/oauth2/generates"
+	"github.com/wingfeng/idx/oauth2/manage"
+	"github.com/wingfeng/idx/oauth2/models"
 	"github.com/wingfeng/idx/store"
+	"github.com/wingfeng/idx/utils"
 )
 
 type Manager struct {
@@ -26,6 +29,7 @@ type Manager struct {
 	accessGenerate    oauth2.AccessGenerate
 	tokenStore        oauth2.TokenStore
 	clientStore       store.ClientStore
+	PrivateKeyBytes   []byte
 }
 
 func NewDefaultManager() *Manager {
@@ -91,54 +95,68 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 		TokenInfo: ti,
 		Request:   tgr.Request,
 	}
-	srt := oauth2.ResponseType(strings.Fields(string(rt))[0])
-	switch srt {
-	case oauth2.Code:
-		codeExp := m.codeExp
-		if codeExp == 0 {
-			codeExp = manage.DefaultCodeExp
-		}
-		ti.SetCodeCreateAt(createAt)
-		ti.SetCodeExpiresIn(codeExp)
-		if exp := tgr.AccessTokenExp; exp > 0 {
-			ti.SetAccessExpiresIn(exp)
-		}
-		if tgr.CodeChallenge != "" {
-			ti.SetCodeChallenge(tgr.CodeChallenge)
-			ti.SetCodeChallengeMethod(tgr.CodeChallengeMethod)
-		}
+	rts := strings.Fields(string(rt))
+	//支持hybrid模式
+	for _, s := range rts {
+		srt := oauth2.ResponseType(s)
+		switch srt {
+		case oauth2.Code:
+			codeExp := m.codeExp
+			if codeExp == 0 {
+				codeExp = manage.DefaultCodeExp
+			}
+			ti.SetCodeCreateAt(createAt)
+			ti.SetCodeExpiresIn(codeExp)
+			if exp := tgr.AccessTokenExp; exp > 0 {
+				ti.SetAccessExpiresIn(exp)
+			}
+			if tgr.CodeChallenge != "" {
+				ti.SetCodeChallenge(tgr.CodeChallenge)
+				ti.SetCodeChallengeMethod(tgr.CodeChallengeMethod)
+			}
 
-		tv, err := m.authorizeGenerate.Token(ctx, td)
-		if err != nil {
-			return nil, err
-		}
-		ti.SetCode(tv)
-	case oauth2.Token, oauth2.IDToken:
-		// set access token expires
-		icfg := m.grantConfig(oauth2.Implicit)
-		aexp := icfg.AccessTokenExp
-		if exp := tgr.AccessTokenExp; exp > 0 {
-			aexp = exp
-		}
-		ti.SetAccessCreateAt(createAt)
-		ti.SetAccessExpiresIn(aexp)
+			tv, err := m.authorizeGenerate.Token(ctx, td)
+			if err != nil {
+				return nil, err
+			}
+			ti.SetCode(tv)
+		case oauth2.Token:
+			// set access token expires
+			icfg := m.grantConfig(oauth2.Implicit)
+			aexp := icfg.AccessTokenExp
+			if exp := tgr.AccessTokenExp; exp > 0 {
+				aexp = exp
+			}
+			ti.SetAccessCreateAt(createAt)
+			ti.SetAccessExpiresIn(aexp)
 
-		if icfg.IsGenerateRefresh {
-			ti.SetRefreshCreateAt(createAt)
-			ti.SetRefreshExpiresIn(icfg.RefreshTokenExp)
-		}
+			if icfg.IsGenerateRefresh {
+				ti.SetRefreshCreateAt(createAt)
+				ti.SetRefreshExpiresIn(icfg.RefreshTokenExp)
+			}
 
-		tv, rv, err := m.accessGenerate.Token(ctx, td, icfg.IsGenerateRefresh)
-		if err != nil {
-			return nil, err
-		}
-		ti.SetAccess(tv)
+			tv, rv, err := m.accessGenerate.Token(ctx, td, icfg.IsGenerateRefresh)
+			if err != nil {
+				return nil, err
+			}
+			ti.SetAccess(tv)
 
-		if rv != "" {
-			ti.SetRefresh(rv)
+			if rv != "" {
+				ti.SetRefresh(rv)
+			}
+		case oauth2.IDToken:
+			// set access token expires
+			icfg := m.grantConfig(oauth2.Implicit)
+			aexp := icfg.AccessTokenExp
+			if exp := tgr.AccessTokenExp; exp > 0 {
+				aexp = exp
+			}
+			ti.SetAccessCreateAt(createAt)
+			ti.SetAccessExpiresIn(aexp)
+			idtoken, _ := m.GetIDToken(ti)
+			ti.SetIDToken(idtoken)
 		}
 	}
-
 	err = m.tokenStore.Create(ctx, ti)
 	if err != nil {
 		return nil, err
@@ -468,4 +486,37 @@ func (m *Manager) grantConfig(gt oauth2.GrantType) *manage.Config {
 		return manage.DefaultClientTokenCfg
 	}
 	return &manage.Config{}
+}
+
+func (m *Manager) GetIDToken(ti oauth2.TokenInfo) (string, error) {
+
+	idToken := &IDToken{
+		Issuer:  ti.GetIssuer(),
+		Sub:     ti.GetUserID(),
+		Aud:     ti.GetClientID(),
+		Nonce:   ti.GetState(),
+		Expire:  ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Unix(),
+		IssueAt: ti.GetAccessCreateAt().Unix(),
+	}
+	nonce := ti.GetNonce()
+	if !strings.EqualFold(nonce, "") {
+		idToken.Nonce = nonce
+	}
+
+	idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
+	claims := idToken.GetClaims()
+	signMethod := jwt.SigningMethodRS256
+	token := jwt.NewWithClaims(signMethod, claims)
+
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(m.PrivateKeyBytes)
+	if err != nil {
+		log.Errorf("签名ID_token错误,%s", err.Error())
+	}
+
+	tk, err := token.SignedString(key)
+	if err != nil {
+		log.Errorf("签名ID_token错误,%s", err.Error())
+	}
+
+	return tk, err
 }

@@ -8,10 +8,6 @@ import (
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-oauth2/oauth2/v4/errors"
-	"github.com/go-oauth2/oauth2/v4/generates"
-	"github.com/go-oauth2/oauth2/v4/server"
-	"github.com/go-oauth2/oauth2/v4/store"
 	gormstore "github.com/go-session/gorm"
 	"github.com/go-session/session"
 	"github.com/rs/cors"
@@ -20,6 +16,10 @@ import (
 	"github.com/wingfeng/idx/handlers"
 	"github.com/wingfeng/idx/models"
 	idxmodels "github.com/wingfeng/idx/models"
+	"github.com/wingfeng/idx/oauth2/errors"
+	"github.com/wingfeng/idx/oauth2/generates"
+	"github.com/wingfeng/idx/oauth2/server"
+	"github.com/wingfeng/idx/oauth2/store"
 	idxstore "github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 )
@@ -50,7 +50,7 @@ func main() {
 	tStore, _ := store.NewMemoryTokenStore()
 	// token store
 	manager.SetTokenStore(tStore)
-	privateKeyByets, err := ioutil.ReadFile(option.PrivateKeyPath)
+	privateKeyBytes, err := ioutil.ReadFile(option.PrivateKeyPath)
 	if err != nil {
 		log.Errorf("读取私钥错误!,Err:%s", err.Error())
 	}
@@ -64,7 +64,7 @@ func main() {
 	jwk := core.NewRSAJWTKeyWithPEM(publicKeyBytes)
 	kid := utils.HashString("123456")
 
-	jwtAccessGenerate := generates.NewJWTAccessGenerate(kid, privateKeyByets, jwt.SigningMethodRS256)
+	jwtAccessGenerate := generates.NewJWTAccessGenerate(kid, privateKeyBytes, jwt.SigningMethodRS256)
 	jwk.Alg = jwtAccessGenerate.SignedMethod.Alg()
 	jwk.Kid = jwtAccessGenerate.SignedKeyID
 	jwks.Keys = append(jwks.Keys, jwk)
@@ -72,7 +72,7 @@ func main() {
 	handlers.Jwks = jwks
 	// generate jwt access token
 	manager.MapAccessGenerate(jwtAccessGenerate)
-
+	manager.PrivateKeyBytes = privateKeyBytes
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
 	idxmodels.Sync2Db(db)
@@ -85,7 +85,7 @@ func main() {
 	srv := server.NewServer(server.NewConfig(), manager)
 
 	openidExt := core.NewOpenIDExtend()
-	openidExt.PrivateKeyByets = privateKeyByets
+	openidExt.PrivateKeyByets = privateKeyBytes
 	openidExt.ClientStore = clientStore
 	openidExt.UserStore = userStore
 
@@ -93,7 +93,7 @@ func main() {
 	srv.SetClientScopeHandler(openidExt.ClientScopeHandler)
 	srv.Config.AllowedResponseTypes = append(srv.Config.AllowedResponseTypes, "id_token")
 	srv.SetUserAuthorizationHandler(openidExt.UserAuthorizeHandler)
-	srv.SetExtensionFieldsHandler(openidExt.Id_TokenHandler)
+
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Infof("OAuth Server Internal Error:", err.Error())
 		return
@@ -131,12 +131,15 @@ func main() {
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"*"},
 		// Enable Debugging for testing, consider disabling in production
-		Debug: true,
+		Debug: false,
 	}).Handler(mux)
 	//	handler := cors.Default().Handler(mux)
 	address := fmt.Sprintf("%s:%d", "", option.Port)
 	err = http.ListenAndServe(address, handler)
-	log.Error(err)
+	if err != nil {
+		log.Error("Server Error:%s", err.Error())
+	}
+
 }
 func initConfig() *Option {
 	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")

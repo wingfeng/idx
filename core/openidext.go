@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	log "github.com/cihub/seelog"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-session/session"
 	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
@@ -23,38 +21,7 @@ func NewOpenIDExtend() *OpenIDExtend {
 	ext := &OpenIDExtend{}
 	return ext
 }
-func (oidext *OpenIDExtend) Id_TokenHandler(ti oauth2.TokenInfo) (fieldsValue map[string]interface{}) {
-	ext := make(map[string]interface{})
-	idToken := &IDToken{
-		Issuer:  ti.GetIssuer(),
-		Sub:     ti.GetUserID(),
-		Aud:     ti.GetClientID(),
-		Nonce:   ti.GetState(),
-		Expire:  ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Unix(),
-		IssueAt: ti.GetAccessCreateAt().Unix(),
-	}
-	nonce := ti.GetNonce()
-	if !strings.EqualFold(nonce, "") {
-		idToken.Nonce = nonce
-	}
 
-	idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
-	claims := idToken.GetClaims()
-	signMethod := jwt.SigningMethodRS256
-	token := jwt.NewWithClaims(signMethod, claims)
-
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(oidext.PrivateKeyByets)
-	if err != nil {
-		log.Errorf("签名ID_token错误,%s", err.Error())
-	}
-
-	tk, err := token.SignedString(key)
-	if err != nil {
-		log.Errorf("签名ID_token错误,%s", err.Error())
-	}
-	ext["id_token"] = tk
-	return ext
-}
 func (oidext *OpenIDExtend) ClientScopeHandler(clientid, scope string) (allow bool, err error) {
 	scopes := strings.Split(scope, " ")
 	supportScopes := oidext.ClientStore.GetClientScopes(clientid)

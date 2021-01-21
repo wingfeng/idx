@@ -10,7 +10,7 @@ import (
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/go-oauth2/oauth2/v4/server"
+	"github.com/wingfeng/idx/oauth2/server"
 )
 
 var HTMLTemplate *template.Template

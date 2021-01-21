@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/go-oauth2/oauth2/v4"
+	"github.com/wingfeng/idx/oauth2"
 	"gorm.io/gorm"
 )
 
