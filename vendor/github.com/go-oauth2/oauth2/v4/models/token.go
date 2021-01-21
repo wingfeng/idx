@@ -13,12 +13,15 @@ func NewToken() *Token {
 
 // Token token model
 type Token struct {
+	Issuer              string        `bson:"Issuer"`
 	ClientID            string        `bson:"ClientID"`
 	UserID              string        `bson:"UserID"`
 	RedirectURI         string        `bson:"RedirectURI"`
 	Scope               string        `bson:"Scope"`
 	Code                string        `bson:"Code"`
 	CodeChallenge       string        `bson:"CodeChallenge"`
+	State               string        `bson:"State"`
+	Nonce               string        `bson:"Nonce"`
 	CodeChallengeMethod string        `bson:"CodeChallengeMethod"`
 	CodeCreateAt        time.Time     `bson:"CodeCreateAt"`
 	CodeExpiresIn       time.Duration `bson:"CodeExpiresIn"`
@@ -28,11 +31,42 @@ type Token struct {
 	Refresh             string        `bson:"Refresh"`
 	RefreshCreateAt     time.Time     `bson:"RefreshCreateAt"`
 	RefreshExpiresIn    time.Duration `bson:"RefreshExpiresIn"`
+	IDToken             string        `bson:"IDToken"`
 }
 
 // New create to token model instance
 func (t *Token) New() oauth2.TokenInfo {
 	return NewToken()
+}
+
+// GetIssuer the  Issuer
+func (t *Token) GetIssuer() string {
+	return t.Issuer
+}
+
+// SetIssuer the Issuer
+func (t *Token) SetIssuer(issuer string) {
+	t.Issuer = issuer
+}
+
+// GetNonce the  Nonce
+func (t *Token) GetNonce() string {
+	return t.Nonce
+}
+
+// SetNonce the Nonce
+func (t *Token) SetNonce(nonce string) {
+	t.Nonce = nonce
+}
+
+// GetState the client id
+func (t *Token) GetState() string {
+	return t.State
+}
+
+// SetState the state
+func (t *Token) SetState(state string) {
+	t.State = state
 }
 
 // GetClientID the client id
@@ -183,4 +217,14 @@ func (t *Token) GetRefreshExpiresIn() time.Duration {
 // SetRefreshExpiresIn the lifetime in seconds of the refresh token
 func (t *Token) SetRefreshExpiresIn(exp time.Duration) {
 	t.RefreshExpiresIn = exp
+}
+
+// GetRefresh refresh Token
+func (t *Token) GetIDToken() string {
+	return t.IDToken
+}
+
+// SetRefresh refresh Token
+func (t *Token) SetIDToken(idtoken string) {
+	t.IDToken = idtoken
 }

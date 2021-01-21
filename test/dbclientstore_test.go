@@ -116,13 +116,16 @@ func TestSeedData(t *testing.T) {
 	role.Name = "科室主任"
 	addRole(role)
 	addUserRole(user.ID, ou.ID, role.ID)
+	addClient("vue_client", "vue_secret", "implicit")
+}
+func addClient(clientID, secret, grantType string) {
 	client := &models.Client{
-		ID:                               2,
-		ClientID:                         "222222",
+
+		ClientID:                         clientID,
 		Enabled:                          true,
 		ProtocolType:                     "oidc",
 		RequireClientSecret:              false,
-		ClientName:                       "222222 Client",
+		ClientName:                       "Client",
 		RequireConsent:                   true,
 		AllowRememberConsent:             true,
 		AlwaysIncludeUserClaimsInIDToken: false,
@@ -142,13 +145,13 @@ func TestSeedData(t *testing.T) {
 		//UserSsoLifetime: , can be zero
 	}
 
-	db.Save(client)
+	db.Save(client).Where("clientId=?", clientID)
 	cg := &models.ClientGrantTypes{
 		ClientID:  client.ID,
-		GrantType: "authorization_code",
+		GrantType: grantType,
 	}
 
-	err = db.Save(cg).Error
+	err := db.Save(cg).Error
 	if err != nil {
 		panic(err)
 	}
@@ -159,7 +162,7 @@ func TestSeedData(t *testing.T) {
 	addClientScope("profile", client.ID)
 	addClientScope("email", client.ID)
 	addClientScope("roles", client.ID)
-	addClientScecret("22222222", client.ID)
+	addClientScecret(secret, client.ID)
 }
 func addClientScecret(secret string, clientid int) {
 	sc := &models.ClientSecrets{

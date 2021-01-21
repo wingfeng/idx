@@ -11,8 +11,9 @@ type ResponseType string
 
 // define the type of authorization request
 const (
-	Code  ResponseType = "code"
-	Token ResponseType = "token"
+	Code    ResponseType = "code"
+	Token   ResponseType = "token"
+	IDToken ResponseType = "id_token"
 )
 
 func (rt ResponseType) String() string {

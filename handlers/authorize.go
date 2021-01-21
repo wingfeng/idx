@@ -14,11 +14,20 @@ func Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var form url.Values
+	var form map[string]interface{}
+
 	if v, ok := store.Get("ReturnUri"); ok {
-		form = v.(url.Values)
+		if r.Form == nil {
+			r.Form = make(url.Values)
+		}
+		form = v.(map[string]interface{})
+		for m, val := range form {
+			for _, vi := range val.([]interface{}) {
+				r.Form.Set(m, vi.(string))
+			}
+
+		}
 	}
-	r.Form = form
 
 	store.Delete("ReturnUri")
 	store.Save()

@@ -113,11 +113,12 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	for k, v := range data {
 		q.Set(k, fmt.Sprint(v))
 	}
+	rt := strings.Fields(string(req.ResponseType))[0]
 
-	switch req.ResponseType {
+	switch oauth2.ResponseType(rt) {
 	case oauth2.Code:
 		u.RawQuery = q.Encode()
-	case oauth2.Token:
+	case oauth2.Token, oauth2.IDToken:
 		u.RawQuery = ""
 		fragment, err := url.QueryUnescape(q.Encode())
 		if err != nil {
@@ -131,16 +132,27 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 
 // CheckResponseType check allows response type
 func (s *Server) CheckResponseType(rt oauth2.ResponseType) bool {
-	for _, art := range s.Config.AllowedResponseTypes {
-		if art == rt {
-			return true
+	rts := strings.Fields(string(rt))
+	for _, rrt := range rts {
+		supported := false
+		t := oauth2.ResponseType(rrt)
+		for _, art := range s.Config.AllowedResponseTypes {
+			if art == t {
+				supported = true
+				break
+			}
+		}
+		if !supported {
+			return false
 		}
 	}
-	return false
+
+	return true
 }
 
 // CheckCodeChallengeMethod checks for allowed code challenge method
 func (s *Server) CheckCodeChallengeMethod(ccm oauth2.CodeChallengeMethod) bool {
+
 	for _, c := range s.Config.AllowedCodeChallengeMethods {
 		if c == ccm {
 			return true
@@ -162,7 +174,7 @@ func (s *Server) ValidationAuthorizeRequest(r *http.Request) (*AuthorizeRequest,
 	if resType.String() == "" {
 		return nil, errors.ErrUnsupportedResponseType
 	} else if allowed := s.CheckResponseType(resType); !allowed {
-		return nil, errors.ErrUnauthorizedClient
+		return nil, errors.ErrUnsupportedResponseType
 	}
 
 	cc := r.FormValue("code_challenge")
@@ -188,6 +200,7 @@ func (s *Server) ValidationAuthorizeRequest(r *http.Request) (*AuthorizeRequest,
 		ClientID:            clientID,
 		State:               r.FormValue("state"),
 		Scope:               r.FormValue("scope"),
+		Nonce:               r.FormValue("nonce"),
 		Request:             r,
 		CodeChallenge:       cc,
 		CodeChallengeMethod: ccm,
@@ -227,6 +240,8 @@ func (s *Server) GetAuthorizeToken(ctx context.Context, req *AuthorizeRequest) (
 		UserID:              req.UserID,
 		RedirectURI:         req.RedirectURI,
 		Scope:               req.Scope,
+		State:               req.State,
+		Nonce:               req.Nonce,
 		AccessTokenExp:      req.AccessTokenExp,
 		Request:             req.Request,
 		CodeChallenge:       req.CodeChallenge,
@@ -237,7 +252,9 @@ func (s *Server) GetAuthorizeToken(ctx context.Context, req *AuthorizeRequest) (
 
 // GetAuthorizeData get authorization response data
 func (s *Server) GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) map[string]interface{} {
-	if rt == oauth2.Code {
+	srt := strings.Fields(string(rt))[0]
+
+	if oauth2.ResponseType(srt) == oauth2.Code {
 		return map[string]interface{}{
 			"code": ti.GetCode(),
 		}

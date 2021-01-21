@@ -8,15 +8,18 @@ import (
 )
 
 func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
-	claims, err := verifyAuthorizationToken(r)
+	//w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	token, err := Srv.ValidationBearerToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if claims != nil {
-		id := claims["sub"]
-		user, err := UserStore.GetUserByID(id.(string))
+	if token != nil {
+		id := token.GetUserID()
+		user, err := UserStore.GetUserByID(id)
 		result := make(map[string]interface{})
 		result["sub"] = user.ID
 		result["email"] = user.Email

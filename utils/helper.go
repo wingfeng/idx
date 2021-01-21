@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"strings"
 
@@ -33,4 +34,13 @@ func HashString(s string) string {
 	h := sha256.New()
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func HashAccessToken(token string) string {
+	h := sha256.New()
+	h.Write([]byte(token))
+	buf := h.Sum(nil)
+	buf = buf[:len(buf)/2]
+	code := base64.URLEncoding.EncodeToString(buf)
+	return strings.TrimRight(code, "=")
 }

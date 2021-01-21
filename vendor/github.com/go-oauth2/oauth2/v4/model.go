@@ -21,7 +21,12 @@ type (
 	// TokenInfo the token information model interface
 	TokenInfo interface {
 		New() TokenInfo
-
+		GetIssuer() string
+		SetIssuer(string)
+		GetNonce() string
+		SetNonce(string)
+		GetState() string
+		SetState(string)
 		GetClientID() string
 		SetClientID(string)
 		GetUserID() string
@@ -55,5 +60,8 @@ type (
 		SetRefreshCreateAt(time.Time)
 		GetRefreshExpiresIn() time.Duration
 		SetRefreshExpiresIn(time.Duration)
+
+		GetIDToken() string
+		SetIDToken(string)
 	}
 )

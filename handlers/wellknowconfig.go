@@ -9,6 +9,8 @@ import (
 )
 
 func WellknownHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
 	config := &core.OpenIDConfig{}
 	scheme := "http"
 	if r.TLS != nil {

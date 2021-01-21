@@ -7,4 +7,5 @@ type Option struct {
 	PrivateKeyPath string
 	PublicKeyPath  string
 	SyncDB         bool
+	HTTPScheme     string //服务器有可能放在nginx做了SSL卸载，所以无法直接判断是https还是http
 }

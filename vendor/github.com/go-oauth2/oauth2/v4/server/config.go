@@ -42,6 +42,7 @@ type AuthorizeRequest struct {
 	Scope               string
 	RedirectURI         string
 	State               string
+	Nonce               string
 	UserID              string
 	CodeChallenge       string
 	CodeChallengeMethod oauth2.CodeChallengeMethod

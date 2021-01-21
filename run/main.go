@@ -7,12 +7,14 @@ import (
 	"net/http"
 
 	log "github.com/cihub/seelog"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
+	gormstore "github.com/go-session/gorm"
+	"github.com/go-session/session"
+	"github.com/rs/cors"
 	"github.com/spf13/viper"
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
@@ -22,8 +24,19 @@ import (
 	"github.com/wingfeng/idx/utils"
 )
 
+var (
+	hashKey = []byte("FF51A553-72FC-478B-9AEF-93D6F506DE91")
+)
+
 func main() {
+
 	option := initConfig()
+	sessionstore := gormstore.MustStore(gormstore.Config{}, option.Driver, option.Connection)
+	defer sessionstore.Close()
+
+	session.InitManager(
+		session.SetStore(sessionstore),
+	)
 
 	if option.SyncDB {
 		//初始化DB
@@ -49,8 +62,9 @@ func main() {
 
 	jwks := &core.JWKS{}
 	jwk := core.NewRSAJWTKeyWithPEM(publicKeyBytes)
+	kid := utils.HashString("123456")
 
-	jwtAccessGenerate := generates.NewJWTAccessGenerate("", privateKeyByets, jwt.SigningMethodRS256)
+	jwtAccessGenerate := generates.NewJWTAccessGenerate(kid, privateKeyByets, jwt.SigningMethodRS256)
 	jwk.Alg = jwtAccessGenerate.SignedMethod.Alg()
 	jwk.Kid = jwtAccessGenerate.SignedKeyID
 	jwks.Keys = append(jwks.Keys, jwk)
@@ -77,7 +91,7 @@ func main() {
 
 	srv.SetPasswordAuthorizationHandler(openidExt.PasswordAuthorizationHandler)
 	srv.SetClientScopeHandler(openidExt.ClientScopeHandler)
-
+	srv.Config.AllowedResponseTypes = append(srv.Config.AllowedResponseTypes, "id_token")
 	srv.SetUserAuthorizationHandler(openidExt.UserAuthorizeHandler)
 	srv.SetExtensionFieldsHandler(openidExt.Id_TokenHandler)
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
@@ -96,22 +110,33 @@ func main() {
 	// }
 	handlers.Srv = srv
 	//handlers.HTMLTemplate = htmlTplEngine
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/login", handlers.LoginHandler)
-	http.HandleFunc("/auth", handlers.AuthHandler)
+	mux.HandleFunc("/login", handlers.LoginHandler)
+	mux.HandleFunc("/auth", handlers.AuthHandler)
 
-	http.HandleFunc("/connect/authorize", handlers.Authorize)
+	mux.HandleFunc("/connect/authorize", handlers.Authorize)
 
-	http.HandleFunc("/connect/token", handlers.Token)
-	http.HandleFunc("/connect/userinfo", handlers.UserInfoHandler)
+	mux.HandleFunc("/connect/token", handlers.Token)
+	mux.HandleFunc("/connect/userinfo", handlers.UserInfoHandler)
 
-	http.HandleFunc("/test", handlers.Test)
-	http.HandleFunc("/.well-known/openid-configuration", handlers.WellknownHandler)
-	http.HandleFunc("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
-	http.HandleFunc("/connect/endsession", handlers.LogoutHandler)
-	http.HandleFunc("/connect/revocation", handlers.RevocateHandler)
-	log.Infof("Server is running at 9096 port.")
-	log.Error(http.ListenAndServe(fmt.Sprintf(":%d", option.Port), nil))
+	mux.HandleFunc("/test", handlers.Test)
+	mux.HandleFunc("/.well-known/openid-configuration", handlers.WellknownHandler)
+	mux.HandleFunc("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
+	mux.HandleFunc("/connect/endsession", handlers.LogoutHandler)
+	mux.HandleFunc("/connect/revocation", handlers.RevocateHandler)
+	log.Infof("Server is running at %d port.", option.Port)
+	handler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedHeaders:   []string{"*"},
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	}).Handler(mux)
+	//	handler := cors.Default().Handler(mux)
+	address := fmt.Sprintf("%s:%d", "", option.Port)
+	err = http.ListenAndServe(address, handler)
+	log.Error(err)
 }
 func initConfig() *Option {
 	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")

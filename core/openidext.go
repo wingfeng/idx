@@ -26,12 +26,19 @@ func NewOpenIDExtend() *OpenIDExtend {
 func (oidext *OpenIDExtend) Id_TokenHandler(ti oauth2.TokenInfo) (fieldsValue map[string]interface{}) {
 	ext := make(map[string]interface{})
 	idToken := &IDToken{
-		Issuer:  "http://localhost:9096",
+		Issuer:  ti.GetIssuer(),
 		Sub:     ti.GetUserID(),
 		Aud:     ti.GetClientID(),
+		Nonce:   ti.GetState(),
 		Expire:  ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Unix(),
 		IssueAt: ti.GetAccessCreateAt().Unix(),
 	}
+	nonce := ti.GetNonce()
+	if !strings.EqualFold(nonce, "") {
+		idToken.Nonce = nonce
+	}
+
+	idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
 	claims := idToken.GetClaims()
 	signMethod := jwt.SigningMethodRS256
 	token := jwt.NewWithClaims(signMethod, claims)
@@ -78,6 +85,10 @@ func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.
 			r.ParseForm()
 		}
 		returnURI := r.Form
+		state := r.Form.Get("state")
+		if !strings.EqualFold(state, "") {
+			store.Set("state", state)
+		}
 		store.Set("ReturnUri", returnURI)
 		store.Save()
 

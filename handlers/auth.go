@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 
+	log "github.com/cihub/seelog"
 	"github.com/go-session/session"
 )
 
@@ -21,9 +21,17 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	var form url.Values
+	var form map[string]interface{}
 	if v, ok := store.Get("ReturnUri"); ok {
-		form = v.(url.Values)
+		// mapVal := v.(map[string]interface{})
+		// for m, val := range mapVal {
+		// 	form[m] = val.(string)
+		// }
+		form = v.(map[string]interface{})
+	}
+	if v, ok := store.Get("state"); ok {
+		//r.Form.Set("state", v.(string))
+		log.Infof("State:%s", v)
 	}
 	// 解析指定文件生成模板对象
 	tem, err := template.ParseFiles("../static/auth.html")

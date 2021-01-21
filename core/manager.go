@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -17,6 +18,7 @@ import (
 )
 
 type Manager struct {
+	HTTPScheme        string
 	codeExp           time.Duration
 	gtcfg             map[oauth2.GrantType]*manage.Config
 	rcfg              *manage.RefreshingConfig
@@ -28,6 +30,7 @@ type Manager struct {
 
 func NewDefaultManager() *Manager {
 	m := NewManager()
+	m.HTTPScheme = "http"
 	// default implementation
 	m.authorizeGenerate = generates.NewAuthorizeGenerate()
 	m.accessGenerate = generates.NewAccessGenerate()
@@ -74,8 +77,13 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 	ti.SetUserID(tgr.UserID)
 	ti.SetRedirectURI(tgr.RedirectURI)
 	ti.SetScope(tgr.Scope)
+	ti.SetState(tgr.State)
+	ti.SetNonce(tgr.Nonce)
+	iss := fmt.Sprintf("%s://%s", m.HTTPScheme, tgr.Request.Host)
+	ti.SetIssuer(iss)
 
 	createAt := time.Now()
+
 	td := &oauth2.GenerateBasic{
 		Client:    cli,
 		UserID:    tgr.UserID,
@@ -83,8 +91,8 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 		TokenInfo: ti,
 		Request:   tgr.Request,
 	}
-
-	switch rt {
+	srt := oauth2.ResponseType(strings.Fields(string(rt))[0])
+	switch srt {
 	case oauth2.Code:
 		codeExp := m.codeExp
 		if codeExp == 0 {
@@ -105,7 +113,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 			return nil, err
 		}
 		ti.SetCode(tv)
-	case oauth2.Token:
+	case oauth2.Token, oauth2.IDToken:
 		// set access token expires
 		icfg := m.grantConfig(oauth2.Implicit)
 		aexp := icfg.AccessTokenExp
@@ -226,6 +234,7 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 		}
 		tgr.UserID = ti.GetUserID()
 		tgr.Scope = ti.GetScope()
+		tgr.State = ti.GetState()
 		if exp := ti.GetAccessExpiresIn(); exp > 0 {
 			tgr.AccessTokenExp = exp
 		}
@@ -236,7 +245,10 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	ti.SetUserID(tgr.UserID)
 	ti.SetRedirectURI(tgr.RedirectURI)
 	ti.SetScope(tgr.Scope)
+	ti.SetState(tgr.State)
 
+	iss := fmt.Sprintf("%s://%s", m.HTTPScheme, tgr.Request.Host)
+	ti.SetIssuer(iss)
 	createAt := time.Now()
 	ti.SetAccessCreateAt(createAt)
 
