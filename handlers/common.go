@@ -11,11 +11,13 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/wingfeng/idx/oauth2/server"
+	"github.com/wingfeng/idx/store"
 )
 
 var HTMLTemplate *template.Template
 var PublicKey *rsa.PublicKey
 var Srv *server.Server
+var ClientStore *store.ClientStore
 
 func outputHTML(w http.ResponseWriter, req *http.Request, filename string) {
 	file, err := os.Open(filename)

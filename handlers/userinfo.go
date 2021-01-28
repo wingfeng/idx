@@ -25,6 +25,7 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		result["email"] = user.Email
 		result["email_verified"] = user.EmailConfirmed
 		result["display_name"] = user.DisplayName
+		result["preferred_username"] = user.Account
 		result["ou"] = user.OU
 		result["ouid"] = user.OUID
 		if err != nil {

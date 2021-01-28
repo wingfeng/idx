@@ -79,7 +79,9 @@ func main() {
 	clientStore := idxstore.NewClientStore(db)
 	userStore := idxstore.NewDbUserStore(db)
 
+	handlers.ClientStore = clientStore
 	handlers.UserStore = userStore
+
 	manager.SetClientStore(clientStore)
 
 	srv := server.NewServer(server.NewConfig(), manager)
