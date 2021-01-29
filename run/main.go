@@ -100,7 +100,8 @@ func main() {
 		log.Infof("OAuth Server Internal Error:", err.Error())
 		return
 	})
-
+	// //	srv.ClientInfoHandler = server.ClientFormHandler
+	// srv.SetClientInfoHandler(server.ClientFormHandler)
 	srv.SetResponseErrorHandler(func(re *errors.Response) {
 		log.Infof("Response Error:", re.Error.Error())
 	})

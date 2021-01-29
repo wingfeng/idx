@@ -120,7 +120,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 				return nil, err
 			}
 			ti.SetCode(tv)
-		case oauth2.Token:
+		case oauth2.Token, oauth2.IDToken:
 			// set access token expires
 			icfg := m.grantConfig(oauth2.Implicit)
 			aexp := icfg.AccessTokenExp
@@ -144,19 +144,20 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 			if rv != "" {
 				ti.SetRefresh(rv)
 			}
-		case oauth2.IDToken:
-			// set access token expires
-			icfg := m.grantConfig(oauth2.Implicit)
-			aexp := icfg.AccessTokenExp
-			if exp := tgr.AccessTokenExp; exp > 0 {
-				aexp = exp
-			}
-			ti.SetAccessCreateAt(createAt)
-			ti.SetAccessExpiresIn(aexp)
-			idtoken, _ := m.GetIDToken(ti)
-			ti.SetIDToken(idtoken)
+			// case oauth2.IDToken:
+			// 	// set access token expires
+			// 	icfg := m.grantConfig(oauth2.Implicit)
+			// 	aexp := icfg.AccessTokenExp
+			// 	if exp := tgr.AccessTokenExp; exp > 0 {
+			// 		aexp = exp
+			// 	}
+			// 	ti.SetAccessCreateAt(createAt)
+			// 	ti.SetAccessExpiresIn(aexp)
+
 		}
 	}
+	idtoken, _ := m.GetIDToken(ti)
+	ti.SetIDToken(idtoken)
 	err = m.tokenStore.Create(ctx, ti)
 	if err != nil {
 		return nil, err
@@ -233,7 +234,7 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	// 		return nil, errors.ErrInvalidClient
 	// 	}
 	// } else
-	if m.clientStore.ValidateSecret(tgr.ClientID, tgr.ClientSecret) != nil {
+	if gt != oauth2.AuthorizationCode && m.clientStore.ValidateSecret(tgr.ClientID, tgr.ClientSecret) != nil {
 		return nil, errors.ErrInvalidClient
 	}
 	if tgr.RedirectURI != "" {

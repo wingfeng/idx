@@ -162,7 +162,9 @@ func addClient(clientID, secret, grantType string) {
 	addClientScope("profile", client.ID)
 	addClientScope("email", client.ID)
 	addClientScope("roles", client.ID)
-	addClientScecret(secret, client.ID)
+	if client.RequireClientSecret {
+		addClientScecret(secret, client.ID)
+	}
 }
 func addClientScecret(secret string, clientid int) {
 	sc := &models.ClientSecrets{

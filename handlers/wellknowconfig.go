@@ -30,7 +30,7 @@ func WellknownHandler(w http.ResponseWriter, r *http.Request) {
 	config.FrontchannelLogoutSessionSupported = true
 	config.BackchannelLogoutSupported = true
 	config.BackchannelLogoutSessionSupported = true
-
+	config.TokenEndpointAuthMethodsSupported = []string{"client_secret_basic", "client_secret_post"}
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")
 	e.Encode(config)
