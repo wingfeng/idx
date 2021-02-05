@@ -31,6 +31,15 @@ func WellknownHandler(w http.ResponseWriter, r *http.Request) {
 	config.BackchannelLogoutSupported = true
 	config.BackchannelLogoutSessionSupported = true
 	config.TokenEndpointAuthMethodsSupported = []string{"client_secret_basic", "client_secret_post"}
+	config.GrantTypesSupported = []string{"authorization_code", "implicit", "refresh_token"}
+	config.ResponseTypesSupported = []string{"code",
+		"token",
+		"id_token",
+		"id_token token",
+		"code id_token",
+		"code token",
+		"code id_token token"}
+	config.IDTokenSigningAlgValuesSupported = []string{"RS256"}
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")
 	e.Encode(config)
