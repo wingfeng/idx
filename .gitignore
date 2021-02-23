@@ -1,4 +1,4 @@
-run/run
-run/__debug_bin
-run/run.exe
+cmd/cmd
+cmd/__debug_bin
+cmd/cmd.exe
 vendor/
