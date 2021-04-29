@@ -73,7 +73,7 @@ var db *gorm.DB
 
 func initTest() {
 	//初始化DB
-	db = GetDB("mysql", "root:123456@tcp(localhost:3306)/sso?&parseTime=true")
+	db = GetDB("mysql", "root:eATq1GDhsP@tcp(localhost:3306)/idx?&parseTime=true")
 	models.Sync2Db(db)
 }
 func TestSeedData(t *testing.T) {
