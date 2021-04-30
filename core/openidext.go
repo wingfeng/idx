@@ -22,24 +22,24 @@ func NewOpenIDExtend() *OpenIDExtend {
 	return ext
 }
 
-func (oidext *OpenIDExtend) ClientScopeHandler(clientid, scope string) (allow bool, err error) {
-	scopes := strings.Split(scope, " ")
-	supportScopes := oidext.ClientStore.GetClientScopes(clientid)
-	for _, s := range scopes {
-		isSupport := false
-		for _, ss := range supportScopes {
-			if strings.EqualFold(s, ss) {
-				isSupport = true
-				break
-			}
-		}
-		if !isSupport {
-			return false, fmt.Errorf("Client:%s Scope:%s not Supported", clientid, s)
-		}
-	}
-	log.Debugf("Validate Client %s Scope:%s", clientid, scope)
-	return true, nil
-}
+// func (oidext *OpenIDExtend) ClientScopeHandler(clientid, scope string) (allow bool, err error) {
+// 	scopes := strings.Split(scope, " ")
+// 	supportScopes := oidext.ClientStore.GetClientScopes(clientid)
+// 	for _, s := range scopes {
+// 		isSupport := false
+// 		for _, ss := range supportScopes {
+// 			if strings.EqualFold(s, ss) {
+// 				isSupport = true
+// 				break
+// 			}
+// 		}
+// 		if !isSupport {
+// 			return false, fmt.Errorf("Client:%s Scope:%s not Supported", clientid, s)
+// 		}
+// 	}
+// 	log.Debugf("Validate Client %s Scope:%s", clientid, scope)
+// 	return true, nil
+// }
 func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {

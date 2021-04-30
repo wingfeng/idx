@@ -27,3 +27,11 @@ func (c *Client) GetDomain() string {
 func (c *Client) GetUserID() string {
 	return c.UserID
 }
+
+// GetUserID user id
+func (c *Client) GetRequireConsent() bool {
+	return true
+}
+func (c *Client) GetRequireSecret() bool {
+	return true
+}

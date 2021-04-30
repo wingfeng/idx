@@ -7,6 +7,7 @@ type (
 	ClientStore interface {
 		// according to the ID for the client information
 		GetByID(ctx context.Context, id string) (ClientInfo, error)
+		ValidateSecret(clientId, secret string) error
 	}
 
 	// TokenStore the token information storage interface

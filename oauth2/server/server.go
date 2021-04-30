@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	log "github.com/cihub/seelog"
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/oauth2/errors"
 )
@@ -100,6 +101,7 @@ func (s *Server) token(w http.ResponseWriter, data map[string]interface{}, heade
 
 // GetRedirectURI get redirect uri
 func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface{}) (string, error) {
+	log.Debugf("GetRedirectURI,Response Type:%s", req.ResponseType)
 	u, err := url.Parse(req.RedirectURI)
 	if err != nil {
 		return "", err
@@ -109,12 +111,15 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	if req.State != "" {
 		q.Set("state", req.State)
 	}
-
-	for k, v := range data {
-		q.Set(k, fmt.Sprint(v))
+	resp := strings.Split(req.ResponseType.String(), " ")
+	for _, s := range resp {
+		q.Set(s, fmt.Sprint(data[s]))
 	}
+	// for k, v := range data {
+	// 	q.Set(k, fmt.Sprint(v))
+	// }
 	//	rt := strings.Fields(string(req.ResponseType))[0]
-	if strings.Contains(string(req.ResponseType), "token") {
+	if !strings.Contains(string(req.ResponseType), "code") {
 		u.RawQuery = ""
 		fragment, err := url.QueryUnescape(q.Encode())
 		if err != nil {
@@ -122,6 +127,7 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 		}
 		u.Fragment = fragment
 	} else {
+		q.Del("id_token")
 		u.RawQuery = q.Encode()
 	}
 
@@ -418,6 +424,7 @@ func (s *Server) GetAccessToken(ctx context.Context, gt oauth2.GrantType, tgr *o
 	}
 
 	switch gt {
+
 	case oauth2.AuthorizationCode:
 		ti, err := s.Manager.GenerateAccessToken(ctx, gt, tgr)
 		if err != nil {

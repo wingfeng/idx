@@ -39,7 +39,10 @@ func WellknownHandler(w http.ResponseWriter, r *http.Request) {
 		"code id_token",
 		"code token",
 		"code id_token token"}
+	config.CodeChallengeMethodsSupported = []string{"S256", "plain"}
 	config.IDTokenSigningAlgValuesSupported = []string{"RS256"}
+	config.SubjectTypesSupported = []string{"public"}
+	config.RequestParameterSupported = true
 	e := json.NewEncoder(w)
 	e.SetIndent("", "  ")
 	e.Encode(config)

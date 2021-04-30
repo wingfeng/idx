@@ -77,5 +77,5 @@ func needConsent(clientID, userID string) bool {
 		return false
 	}
 	//todo:获取保存好的consent信息，如果已经有以保存的consent信息即可直接跳过。
-	return client.RequireConsent
+	return client.GetRequireConsent()
 }

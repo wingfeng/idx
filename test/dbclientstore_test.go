@@ -118,14 +118,33 @@ func TestSeedData(t *testing.T) {
 	addUserRole(user.ID, ou.ID, role.ID)
 	addClient("vue_client", "vue_secret", "implicit")
 }
+func TestInsertHybrid(t *testing.T) {
+	initTest()
+	addClient("oidc-client-implicit.test", "secret", "hybrid")
+
+}
+func TestInsertAuthCode(t *testing.T) {
+	initTest()
+	addClient("local_test", "local_secret", "authorization_code")
+
+}
+func TestInsertPasswordClient(t *testing.T) {
+	initTest()
+	addClient("password_client", "password_secret", "password")
+
+}
 func addClient(clientID, secret, grantType string) {
+	requireSecret := len(secret) > 0
 	client := &models.Client{
 
 		ClientID:                         clientID,
 		Enabled:                          true,
 		ProtocolType:                     "oidc",
-		RequireClientSecret:              false,
+		RequireClientSecret:              requireSecret,
 		ClientName:                       "Client",
+		Domains:                          "http://localhost",
+		GrantTypes:                       grantType,
+		Scopes:                           "openid email profile roles",
 		RequireConsent:                   true,
 		AllowRememberConsent:             true,
 		AlwaysIncludeUserClaimsInIDToken: false,
@@ -146,22 +165,7 @@ func addClient(clientID, secret, grantType string) {
 	}
 
 	db.Save(client).Where("clientId=?", clientID)
-	cg := &models.ClientGrantTypes{
-		ClientID:  client.ID,
-		GrantType: grantType,
-	}
 
-	err := db.Save(cg).Error
-	if err != nil {
-		panic(err)
-	}
-
-	addRedirectURI("http://localhost:9094/oauth2", client.ID)
-	addRedirectURI("http://localhost:9000/", client.ID)
-	addClientScope("openid", client.ID)
-	addClientScope("profile", client.ID)
-	addClientScope("email", client.ID)
-	addClientScope("roles", client.ID)
 	if client.RequireClientSecret {
 		addClientScecret(secret, client.ID)
 	}
@@ -179,32 +183,7 @@ func addClientScecret(secret string, clientid int) {
 		panic(err)
 	}
 }
-func addRedirectURI(uri string, clientid int) {
 
-	redUris := &models.ClientRedirectURIs{
-
-		RedirectURI: uri,
-		ClientID:    clientid,
-	}
-
-	err := db.Save(redUris).Error
-	if err != nil {
-
-		panic(err)
-	}
-}
-func addClientScope(scope string, clientid int) {
-	sc := &models.ClientScopes{
-
-		Scope:    scope,
-		ClientID: clientid,
-	}
-
-	err := db.Save(sc).Error
-	if err != nil {
-		panic(err)
-	}
-}
 func addUserRole(uid, ouid, rid string) {
 
 	ur := &models.UserRoles{
@@ -226,14 +205,6 @@ func addRole(role *models.Role) {
 	}
 }
 
-func TestGetClientScopes(t *testing.T) {
-	initTest()
-	cs := &store.ClientStore{
-		DB: db,
-	}
-	scopes := cs.GetClientScopes("local_test")
-	assert.Equal(t, len(scopes), 4)
-}
 func TestValidateSecret(t *testing.T) {
 	initTest()
 	cs := &store.ClientStore{

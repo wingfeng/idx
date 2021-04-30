@@ -10,6 +10,9 @@ type Client struct {
 	ID                                int       `gorm:"primary_key;auto_Increment;column:Id;not null"`
 	Enabled                           bool      `gorm:"column:Enabled;type:tinyint(1);not null"`
 	ClientID                          string    `gorm:"unique;column:ClientId;type:varchar(200);not null"`
+	GrantTypes                        string    `gorm:"column:GrantTypes;type:varchar(256)"`
+	Scopes                            string    `gorm:"column:Scopes;type:varchar(256)"`
+	Domains                           string    `gorm:"column:Domains;type:varchar(1024)"`
 	ProtocolType                      string    `gorm:"column:ProtocolType;type:varchar(200);not null"`
 	RequireClientSecret               bool      `gorm:"column:RequireClientSecret;type:tinyint(1);not null"`
 	ClientName                        string    `gorm:"column:ClientName;type:varchar(200)"`
@@ -57,8 +60,18 @@ func (c *Client) GetSecret() string {
 	return "c.se"
 }
 func (c *Client) GetDomain() string {
-	return ""
+	return c.Domains
 }
 func (c *Client) GetUserID() string {
 	return ""
+}
+func (c *Client) GetRequireConsent() bool {
+	return c.RequireConsent
+}
+
+func (c *Client) ValifyPassword(password string) bool {
+	return c.RequireClientSecret
+}
+func (c *Client) GetRequireSecret() bool {
+	return c.RequireClientSecret
 }

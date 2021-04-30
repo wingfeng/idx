@@ -26,10 +26,23 @@ import (
 
 var (
 	hashKey = []byte("FF51A553-72FC-478B-9AEF-93D6F506DE91")
+
+	AppName      string // 应用名称
+	AppVersion   string // 应用版本
+	BuildVersion string // 编译版本
+	BuildTime    string // 编译时间
+	GitRevision  string // Git版本
+	GitBranch    string // Git分支
+	GoVersion    string // Golang信息
 )
 
 func main() {
-
+	showVersion := flag.Bool("ver", false, "程序版本")
+	flag.Parse()
+	if *showVersion {
+		Version()
+		return
+	}
 	option := initConfig()
 	sessionstore := gormstore.MustStore(gormstore.Config{}, option.Driver, option.Connection)
 	defer sessionstore.Close()
@@ -62,7 +75,7 @@ func main() {
 
 	jwks := &core.JWKS{}
 	jwk := core.NewRSAJWTKeyWithPEM(publicKeyBytes)
-	kid := utils.HashString("123456")
+	kid := "d2a820a8916647f7ac72627ec0ae4f94"
 
 	jwtAccessGenerate := generates.NewJWTAccessGenerate(kid, privateKeyBytes, jwt.SigningMethodRS256)
 	jwk.Alg = jwtAccessGenerate.SignedMethod.Alg()
@@ -73,6 +86,7 @@ func main() {
 	// generate jwt access token
 	manager.MapAccessGenerate(jwtAccessGenerate)
 	manager.PrivateKeyBytes = privateKeyBytes
+	manager.Kid = kid
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
 	idxmodels.Sync2Db(db)
@@ -92,7 +106,7 @@ func main() {
 	openidExt.UserStore = userStore
 
 	srv.SetPasswordAuthorizationHandler(openidExt.PasswordAuthorizationHandler)
-	srv.SetClientScopeHandler(openidExt.ClientScopeHandler)
+	//	srv.SetClientScopeHandler(openidExt.ClientScopeHandler)
 	srv.Config.AllowedResponseTypes = append(srv.Config.AllowedResponseTypes, "id_token")
 	srv.SetUserAuthorizationHandler(openidExt.UserAuthorizeHandler)
 
@@ -168,4 +182,13 @@ func initConfig() *Option {
 	}
 
 	return opts
+}
+func Version() {
+	fmt.Printf("App Name:\t%s\n", AppName)
+	fmt.Printf("App Version:\t%s\n", AppVersion)
+	fmt.Printf("Build version:\t%s\n", BuildVersion)
+	fmt.Printf("Build time:\t%s\n", BuildTime)
+	fmt.Printf("Git revision:\t%s\n", GitRevision)
+	fmt.Printf("Git branch:\t%s\n", GitBranch)
+	fmt.Printf("Golang Version: %s\n", GoVersion)
 }

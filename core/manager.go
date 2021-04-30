@@ -3,20 +3,17 @@ package core
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 
-	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/oauth2/errors"
 	"github.com/wingfeng/idx/oauth2/generates"
 	"github.com/wingfeng/idx/oauth2/manage"
 	"github.com/wingfeng/idx/oauth2/models"
-	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 )
 
@@ -25,11 +22,13 @@ type Manager struct {
 	codeExp           time.Duration
 	gtcfg             map[oauth2.GrantType]*manage.Config
 	rcfg              *manage.RefreshingConfig
+	validateURI       manage.ValidateURIHandler
 	authorizeGenerate oauth2.AuthorizeGenerate
 	accessGenerate    oauth2.AccessGenerate
 	tokenStore        oauth2.TokenStore
-	clientStore       store.ClientStore
+	clientStore       oauth2.ClientStore
 	PrivateKeyBytes   []byte
+	Kid               string
 }
 
 func NewDefaultManager() *Manager {
@@ -38,7 +37,7 @@ func NewDefaultManager() *Manager {
 	// default implementation
 	m.authorizeGenerate = generates.NewAuthorizeGenerate()
 	m.accessGenerate = generates.NewAccessGenerate()
-
+	m.validateURI = manage.DefaultValidateURI
 	return m
 }
 func NewManager() *Manager {
@@ -49,8 +48,8 @@ func NewManager() *Manager {
 func (m *Manager) SetTokenStore(tStore oauth2.TokenStore) {
 	m.tokenStore = tStore
 }
-func (m *Manager) SetClientStore(clientStore *store.ClientStore) {
-	m.clientStore = *clientStore
+func (m *Manager) SetClientStore(clientStore oauth2.ClientStore) {
+	m.clientStore = clientStore
 }
 func (m *Manager) MapAccessGenerate(gen oauth2.AccessGenerate) {
 	m.accessGenerate = gen
@@ -71,7 +70,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 	if err != nil {
 		return nil, err
 	} else if tgr.RedirectURI != "" {
-		if err := m.validateURI(cli, tgr.RedirectURI); err != nil {
+		if err := m.validateURI(cli.GetDomain(), tgr.RedirectURI); err != nil {
 			return nil, err
 		}
 	}
@@ -83,6 +82,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 	ti.SetScope(tgr.Scope)
 	ti.SetState(tgr.State)
 	ti.SetNonce(tgr.Nonce)
+	ti.SetKID(m.Kid)
 	iss := fmt.Sprintf("%s://%s", m.HTTPScheme, tgr.Request.Host)
 	ti.SetIssuer(iss)
 
@@ -158,6 +158,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 	}
 	idtoken, _ := m.GetIDToken(ti)
 	ti.SetIDToken(idtoken)
+	ti.SetAccess(idtoken)
 	err = m.tokenStore.Create(ctx, ti)
 	if err != nil {
 		return nil, err
@@ -229,16 +230,15 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	if err != nil {
 		return nil, err
 	}
-	// if cliPass, ok := cli.(oauth2.ClientPasswordVerifier); ok {
-	// 	if !cliPass.VerifyPassword(tgr.ClientSecret) {
-	// 		return nil, errors.ErrInvalidClient
-	// 	}
-	// } else
-	if gt != oauth2.AuthorizationCode && m.clientStore.ValidateSecret(tgr.ClientID, tgr.ClientSecret) != nil {
-		return nil, errors.ErrInvalidClient
+	if cli.GetRequireSecret() {
+		err := m.clientStore.ValidateSecret(cli.GetID(), tgr.ClientSecret)
+		if err != nil {
+			return nil, errors.ErrInvalidClient
+		}
 	}
+
 	if tgr.RedirectURI != "" {
-		if err := m.validateURI(cli, tgr.RedirectURI); err != nil {
+		if err := m.validateURI(cli.GetDomain(), tgr.RedirectURI); err != nil {
 			return nil, err
 		}
 	}
@@ -295,8 +295,9 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	if err != nil {
 		return nil, err
 	}
+	idToken, _ := m.GetIDToken(ti)
 	ti.SetAccess(av)
-
+	ti.SetAccess(idToken)
 	if rv != "" {
 		ti.SetRefresh(rv)
 	}
@@ -450,26 +451,27 @@ func (m *Manager) LoadRefreshToken(ctx context.Context, refresh string) (oauth2.
 	}
 	return ti, nil
 }
-func (m *Manager) validateURI(cli *idxmodels.Client, rawuri string) error {
-	url, err := url.Parse(rawuri)
-	if err != nil {
-		log.Errorf("传入URL错误!%s", url)
-	}
 
-	allowUris, err := m.clientStore.GetClientRedirectUris(cli.ID)
-	if err != nil {
-		log.Error("校验返回Uri错误!")
-	}
-	for _, s := range allowUris {
+// func (m *Manager) validateURI(cli *idxmodels.Client, rawuri string) error {
+// 	url, err := url.Parse(rawuri)
+// 	if err != nil {
+// 		log.Errorf("传入URL错误!%s", url)
+// 	}
 
-		surl, _ := url.Parse(s)
-		//当scheme和host都相同就确认可以返回。
-		if strings.EqualFold(url.Scheme, surl.Scheme) && strings.EqualFold(url.Host, surl.Host) {
-			return nil
-		}
-	}
-	return log.Errorf("不合法的Uri:%s", rawuri)
-}
+// 	allowUris, err := m.clientStore.GetClientRedirectUris(cli.ID)
+// 	if err != nil {
+// 		log.Error("校验返回Uri错误!")
+// 	}
+// 	for _, s := range allowUris {
+
+// 		surl, _ := url.Parse(s)
+// 		//当scheme和host都相同就确认可以返回。
+// 		if strings.EqualFold(url.Scheme, surl.Scheme) && strings.EqualFold(url.Host, surl.Host) {
+// 			return nil
+// 		}
+// 	}
+// 	return log.Errorf("不合法的Uri:%s", rawuri)
+// }
 
 // get grant type config
 func (m *Manager) grantConfig(gt oauth2.GrantType) *manage.Config {
@@ -509,6 +511,9 @@ func (m *Manager) GetIDToken(ti oauth2.TokenInfo) (string, error) {
 	signMethod := jwt.SigningMethodRS256
 	token := jwt.NewWithClaims(signMethod, claims)
 
+	token.Header["kid"] = m.Kid
+
+	//	token.Header["kid"] = a.SignedKeyID
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(m.PrivateKeyBytes)
 	if err != nil {
 		log.Errorf("签名ID_token错误,%s", err.Error())

@@ -11,6 +11,8 @@ type (
 		GetSecret() string
 		GetDomain() string
 		GetUserID() string
+		GetRequireConsent() bool
+		GetRequireSecret() bool
 	}
 
 	// ClientPasswordVerifier the password handler interface
@@ -63,5 +65,8 @@ type (
 
 		GetIDToken() string
 		SetIDToken(string)
+		// //JWKS KID
+		// GetKID() string
+		// SetKID(string)
 	}
 )

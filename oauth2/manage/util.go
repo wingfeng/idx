@@ -14,17 +14,20 @@ type (
 
 // DefaultValidateURI validates that redirectURI is contained in baseURI
 func DefaultValidateURI(baseURI string, redirectURI string) error {
-	base, err := url.Parse(baseURI)
-	if err != nil {
-		return err
-	}
+	urls := strings.Split(baseURI, ",")
+	for _, s := range urls {
+		base, err := url.Parse(s)
+		if err != nil {
+			return err
+		}
 
-	redirect, err := url.Parse(redirectURI)
-	if err != nil {
-		return err
+		redirect, err := url.Parse(redirectURI)
+		if err != nil {
+			return err
+		}
+		if strings.HasSuffix(redirect.Host, base.Host) {
+			return nil
+		}
 	}
-	if !strings.HasSuffix(redirect.Host, base.Host) {
-		return errors.ErrInvalidRedirectURI
-	}
-	return nil
+	return errors.ErrInvalidRedirectURI
 }

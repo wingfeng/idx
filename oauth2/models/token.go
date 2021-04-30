@@ -32,6 +32,7 @@ type Token struct {
 	RefreshCreateAt     time.Time     `bson:"RefreshCreateAt"`
 	RefreshExpiresIn    time.Duration `bson:"RefreshExpiresIn"`
 	IDToken             string        `bson:"IDToken"`
+	KID                 string        `bson:"KID"`
 }
 
 // New create to token model instance
@@ -227,4 +228,12 @@ func (t *Token) GetIDToken() string {
 // SetRefresh refresh Token
 func (t *Token) SetIDToken(idtoken string) {
 	t.IDToken = idtoken
+}
+
+func (t *Token) GetKID() string {
+	return t.KID
+}
+
+func (t *Token) SetKID(kid string) {
+	t.KID = kid
 }

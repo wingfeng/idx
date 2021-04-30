@@ -24,5 +24,5 @@ type OpenIDConfig struct {
 	IDTokenSigningAlgValuesSupported   []string `json:"id_token_signing_alg_values_supported"`
 	SubjectTypesSupported              []string `json:"subject_types_supported"`
 	CodeChallengeMethodsSupported      []string `json:"code_challenge_methods_supported"`
-	RequestParameterSupported          []string `json:"request_parameter_supported"`
+	RequestParameterSupported          bool     `json:"request_parameter_supported"`
 }

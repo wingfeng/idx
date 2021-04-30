@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	idxmodels "github.com/wingfeng/idx/models"
+	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/utils"
 	"gorm.io/gorm"
 )
@@ -22,7 +23,7 @@ func NewClientStore(db *gorm.DB) *ClientStore {
 }
 
 //GetByID 通过ID获取Client信息
-func (cs *ClientStore) GetByID(ctx context.Context, id string) (*idxmodels.Client, error) {
+func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 	client := &idxmodels.Client{}
 	err := cs.DB.Where("ClientId=?", id).First(client).Error
 	if err != nil {
@@ -31,15 +32,6 @@ func (cs *ClientStore) GetByID(ctx context.Context, id string) (*idxmodels.Clien
 	return client, err
 }
 
-func (cs *ClientStore) GetClientRedirectUris(id int) ([]string, error) {
-	uris := new([]idxmodels.ClientRedirectURIs)
-	err := cs.DB.Where("ClientId=?", id).Find(uris).Error
-	var sURIs []string
-	for _, s := range *uris {
-		sURIs = append(sURIs, s.RedirectURI)
-	}
-	return sURIs, err
-}
 func (cs *ClientStore) ValidateSecret(clientId, secret string) error {
 	key := utils.HashString(secret)
 	var count int64
@@ -52,13 +44,13 @@ func (cs *ClientStore) ValidateSecret(clientId, secret string) error {
 	return err
 }
 
-func (cs *ClientStore) GetClientScopes(clientID string) []string {
+// func (cs *ClientStore) GetClientScopes(clientID string) []string {
 
-	clientScopes := []idxmodels.ClientScopes{}
-	cs.DB.Table("client_scopes  as cs").Joins("join clients as c on cs.ClientId=c.Id ").Where("c.ClientId=?", clientID).Find(&clientScopes)
-	var result []string
-	for _, cs := range clientScopes {
-		result = append(result, cs.Scope)
-	}
-	return result
-}
+// 	clientScopes := []idxmodels.ClientScopes{}
+// 	cs.DB.Table("client_scopes  as cs").Joins("join clients as c on cs.ClientId=c.Id ").Where("c.ClientId=?", clientID).Find(&clientScopes)
+// 	var result []string
+// 	for _, cs := range clientScopes {
+// 		result = append(result, cs.Scope)
+// 	}
+// 	return result
+// }
