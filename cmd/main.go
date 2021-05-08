@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	gormstore "github.com/go-session/gorm"
 	"github.com/go-session/session"
+	"github.com/mash/go-accesslog"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 	"github.com/wingfeng/idx/core"
@@ -35,6 +36,13 @@ var (
 	GitBranch    string // Git分支
 	GoVersion    string // Golang信息
 )
+
+type logger struct {
+}
+
+func (l logger) Log(record accesslog.LogRecord) {
+	log.Debugf(record.Method + " " + record.Uri)
+}
 
 func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
@@ -152,7 +160,8 @@ func main() {
 	}).Handler(mux)
 	//	handler := cors.Default().Handler(mux)
 	address := fmt.Sprintf("%s:%d", "", option.Port)
-	err = http.ListenAndServe(address, handler)
+	l := logger{}
+	err = http.ListenAndServe(address, accesslog.NewLoggingHandler(handler, l))
 	if err != nil {
 		log.Error("Server Error:%s", err.Error())
 	}

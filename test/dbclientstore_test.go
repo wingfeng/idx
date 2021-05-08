@@ -116,7 +116,11 @@ func TestSeedData(t *testing.T) {
 	role.Name = "科室主任"
 	addRole(role)
 	addUserRole(user.ID, ou.ID, role.ID)
-	addClient("vue_client", "vue_secret", "implicit")
+	addClient("implicit_client", "implicit_secret", "implicit")
+	addClient("hybrid_client", "hybrid_secret", "hybrid")
+	addClient("code_client", "code_secret", "authorization_code")
+	addClient("password_client", "password_secret", "password")
+
 }
 func TestInsertHybrid(t *testing.T) {
 	initTest()
@@ -142,7 +146,7 @@ func addClient(clientID, secret, grantType string) {
 		ProtocolType:                     "oidc",
 		RequireClientSecret:              requireSecret,
 		ClientName:                       "Client",
-		Domains:                          "http://localhost",
+		Domains:                          "http://localhost:9000,http://localhost:9001",
 		GrantTypes:                       grantType,
 		Scopes:                           "openid email profile roles",
 		RequireConsent:                   true,
@@ -164,7 +168,7 @@ func addClient(clientID, secret, grantType string) {
 		//UserSsoLifetime: , can be zero
 	}
 
-	db.Save(client).Where("clientId=?", clientID)
+	db.Save(client).Where("ClientId=?", clientID)
 
 	if client.RequireClientSecret {
 		addClientScecret(secret, client.ID)

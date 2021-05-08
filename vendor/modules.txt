@@ -51,6 +51,9 @@ github.com/labstack/gommon/log
 ## explicit
 github.com/magiconair/properties
 github.com/magiconair/properties/assert
+# github.com/mash/go-accesslog v1.2.0
+## explicit
+github.com/mash/go-accesslog
 # github.com/mattn/go-colorable v0.1.2
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.9

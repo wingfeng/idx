@@ -14,6 +14,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16 // indirect
 	github.com/labstack/gommon v0.3.0
 	github.com/magiconair/properties v1.8.1
+	github.com/mash/go-accesslog v1.2.0
 	github.com/rs/cors v1.7.0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/viper v1.7.1

@@ -120,7 +120,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 				return nil, err
 			}
 			ti.SetCode(tv)
-		case oauth2.Token, oauth2.IDToken:
+		case oauth2.Token:
 			// set access token expires
 			icfg := m.grantConfig(oauth2.Implicit)
 			aexp := icfg.AccessTokenExp
@@ -144,21 +144,17 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 			if rv != "" {
 				ti.SetRefresh(rv)
 			}
-			// case oauth2.IDToken:
-			// 	// set access token expires
-			// 	icfg := m.grantConfig(oauth2.Implicit)
-			// 	aexp := icfg.AccessTokenExp
-			// 	if exp := tgr.AccessTokenExp; exp > 0 {
-			// 		aexp = exp
-			// 	}
-			// 	ti.SetAccessCreateAt(createAt)
-			// 	ti.SetAccessExpiresIn(aexp)
+
+		case oauth2.IDToken:
+			idToken, err := m.GetIDToken(ti)
+			if err != nil {
+				return nil, err
+			}
+			ti.SetIDToken(idToken)
 
 		}
 	}
-	idtoken, _ := m.GetIDToken(ti)
-	ti.SetIDToken(idtoken)
-	ti.SetAccess(idtoken)
+
 	err = m.tokenStore.Create(ctx, ti)
 	if err != nil {
 		return nil, err
@@ -492,21 +488,25 @@ func (m *Manager) grantConfig(gt oauth2.GrantType) *manage.Config {
 }
 
 func (m *Manager) GetIDToken(ti oauth2.TokenInfo) (string, error) {
-
+	//根据配置获取token过期时间
+	icfg := m.grantConfig(oauth2.Implicit)
+	aexp := icfg.AccessTokenExp
+	iat := time.Now()
 	idToken := &IDToken{
 		Issuer:  ti.GetIssuer(),
 		Sub:     ti.GetUserID(),
 		Aud:     ti.GetClientID(),
 		Nonce:   ti.GetState(),
-		Expire:  ti.GetAccessCreateAt().Add(ti.GetAccessExpiresIn()).Unix(),
-		IssueAt: ti.GetAccessCreateAt().Unix(),
+		Expire:  iat.Add(aexp).Unix(),
+		IssueAt: iat.Unix(),
 	}
 	nonce := ti.GetNonce()
 	if !strings.EqualFold(nonce, "") {
 		idToken.Nonce = nonce
 	}
-
-	idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
+	if access := ti.GetAccess(); access != "" {
+		idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
+	}
 	claims := idToken.GetClaims()
 	signMethod := jwt.SigningMethodRS256
 	token := jwt.NewWithClaims(signMethod, claims)

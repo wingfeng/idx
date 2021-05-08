@@ -102,6 +102,7 @@ func (s *Server) token(w http.ResponseWriter, data map[string]interface{}, heade
 // GetRedirectURI get redirect uri
 func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface{}) (string, error) {
 	log.Debugf("GetRedirectURI,Response Type:%s", req.ResponseType)
+	//	respMode := req.Request.URL.Query().Get("response_mode")
 	u, err := url.Parse(req.RedirectURI)
 	if err != nil {
 		return "", err
@@ -111,13 +112,10 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	if req.State != "" {
 		q.Set("state", req.State)
 	}
-	resp := strings.Split(req.ResponseType.String(), " ")
-	for _, s := range resp {
-		q.Set(s, fmt.Sprint(data[s]))
+
+	for k, v := range data {
+		q.Set(k, fmt.Sprint(v))
 	}
-	// for k, v := range data {
-	// 	q.Set(k, fmt.Sprint(v))
-	// }
 	//	rt := strings.Fields(string(req.ResponseType))[0]
 	if !strings.Contains(string(req.ResponseType), "code") {
 		u.RawQuery = ""
@@ -262,9 +260,7 @@ func (s *Server) GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) m
 
 		if oauth2.ResponseType(st) == oauth2.Code {
 			result["code"] = ti.GetCode()
-
-		} else if oauth2.ResponseType(st) == oauth2.IDToken {
-			result["id_token"], _ = s.Manager.GetIDToken(ti)
+			return result
 		} else {
 			tmp := s.GetTokenData(ti)
 			for k, v := range tmp {
@@ -500,11 +496,15 @@ func (s *Server) GetAccessToken(ctx context.Context, gt oauth2.GrantType, tgr *o
 // GetTokenData token data
 func (s *Server) GetTokenData(ti oauth2.TokenInfo) map[string]interface{} {
 	data := map[string]interface{}{
-		"access_token": ti.GetAccess(),
-		"token_type":   s.Config.TokenType,
-		"expires_in":   int64(ti.GetAccessExpiresIn() / time.Second),
+		"token_type": s.Config.TokenType,
 	}
 
+	if expires := int64(ti.GetAccessExpiresIn() / time.Second); expires > 0 {
+		data["expires_in"] = expires
+	}
+	if access := ti.GetAccess(); access != "" {
+		data["access_token"] = access
+	}
 	if scope := ti.GetScope(); scope != "" {
 		data["scope"] = scope
 	}
@@ -512,7 +512,9 @@ func (s *Server) GetTokenData(ti oauth2.TokenInfo) map[string]interface{} {
 	if refresh := ti.GetRefresh(); refresh != "" {
 		data["refresh_token"] = refresh
 	}
-	data["id_token"], _ = s.Manager.GetIDToken(ti)
+	if id_token := ti.GetIDToken(); id_token != "" {
+		data["id_token"] = id_token
+	}
 	if fn := s.ExtensionFieldsHandler; fn != nil {
 		ext := fn(ti)
 		for k, v := range ext {

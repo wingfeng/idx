@@ -21,7 +21,7 @@ type IDToken struct {
 	Nonce            string `json:"nonce,omitempty"`
 	Expire           int64  `json:"exp,omitempty"`
 	PreferedUserName string `json:"preferred_username"`
-	AccessTokenHash  string `json:"at_hash"`
+	AccessTokenHash  string `json:"at_hash,omitempty"`
 	IssueAt          int64  `json:"iat,omitempty"`
 }
 
@@ -36,6 +36,8 @@ func (idt *IDToken) GetClaims() jwt.MapClaims {
 	result["preferred_username"] = idt.PreferedUserName
 	result["exp"] = idt.Expire
 	result["iat"] = idt.IssueAt
-	result["at_hash"] = idt.AccessTokenHash
+	if idt.AccessTokenHash != "" {
+		result["at_hash"] = idt.AccessTokenHash
+	}
 	return result
 }

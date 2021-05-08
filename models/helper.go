@@ -18,7 +18,6 @@ func Sync2Db(x *gorm.DB) {
 		new(APIScopeClaims),
 		new(APIScopes),
 		new(APISecrets),
-		new(AuditLog),
 
 		new(ClientClaims),
 		new(ClientCorsOrigins),
