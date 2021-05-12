@@ -72,6 +72,7 @@ func (s *Server) redirect(w http.ResponseWriter, req *AuthorizeRequest, data map
 	}
 
 	w.Header().Set("Location", uri)
+
 	w.WriteHeader(302)
 	return nil
 }
@@ -101,8 +102,9 @@ func (s *Server) token(w http.ResponseWriter, data map[string]interface{}, heade
 
 // GetRedirectURI get redirect uri
 func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface{}) (string, error) {
-	log.Debugf("GetRedirectURI,Response Type:%s", req.ResponseType)
-	//	respMode := req.Request.URL.Query().Get("response_mode")
+
+	respMode := req.Request.URL.Query().Get("response_mode")
+	log.Debugf("GetRedirectURI,Response Type:%s Response Mode:%s", req.ResponseType, respMode)
 	u, err := url.Parse(req.RedirectURI)
 	if err != nil {
 		return "", err
@@ -116,16 +118,16 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	for k, v := range data {
 		q.Set(k, fmt.Sprint(v))
 	}
-	//	rt := strings.Fields(string(req.ResponseType))[0]
-	if !strings.Contains(string(req.ResponseType), "code") {
+	switch respMode {
+	case "fragment":
 		u.RawQuery = ""
 		fragment, err := url.QueryUnescape(q.Encode())
 		if err != nil {
 			return "", err
 		}
 		u.Fragment = fragment
-	} else {
-		q.Del("id_token")
+	case "form_post":
+	default:
 		u.RawQuery = q.Encode()
 	}
 
