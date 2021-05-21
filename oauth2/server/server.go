@@ -118,7 +118,7 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	for k, v := range data {
 		q.Set(k, fmt.Sprint(v))
 	}
-	if respMode == "" && !strings.Contains(string(req.ResponseType), "code") {
+	if respMode == "" && !strings.EqualFold(string(req.ResponseType), "code") {
 		respMode = "fragment"
 	}
 	switch respMode {
@@ -265,7 +265,7 @@ func (s *Server) GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) m
 
 		if oauth2.ResponseType(st) == oauth2.Code {
 			result["code"] = ti.GetCode()
-			return result
+
 		} else {
 			tmp := s.GetTokenData(ti)
 			for k, v := range tmp {
