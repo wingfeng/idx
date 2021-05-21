@@ -118,6 +118,9 @@ func (s *Server) GetRedirectURI(req *AuthorizeRequest, data map[string]interface
 	for k, v := range data {
 		q.Set(k, fmt.Sprint(v))
 	}
+	if respMode == "" && !strings.Contains(string(req.ResponseType), "code") {
+		respMode = "fragment"
+	}
 	switch respMode {
 	case "fragment":
 		u.RawQuery = ""

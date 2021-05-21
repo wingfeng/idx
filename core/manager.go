@@ -149,12 +149,14 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 			}
 
 		case oauth2.IDToken:
+
+		}
+		if strings.Contains(string(rt), "id_token") {
 			idToken, err := m.GetIDToken(ti)
 			if err != nil {
 				return nil, err
 			}
 			ti.SetIDToken(idToken)
-
 		}
 	}
 
