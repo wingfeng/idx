@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func Test(w http.ResponseWriter, r *http.Request) {
+func Test(ctx *gin.Context) {
+	r := ctx.Request
+	w := ctx.Writer
 	token, err := Srv.ValidationBearerToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

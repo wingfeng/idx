@@ -3,11 +3,17 @@ package handlers
 import (
 	"net/http"
 	"net/url"
+	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-session/session"
+	"github.com/wingfeng/idx/core"
 )
 
-func Authorize(w http.ResponseWriter, r *http.Request) {
+func Authorize(ctx *gin.Context) {
+	w := ctx.Writer
+	r := ctx.Request
+	core.DumpRequest(os.Stdout, "Authorize", r)
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"strings"
 
 	log "github.com/cihub/seelog"
@@ -19,16 +18,6 @@ var PublicKey *rsa.PublicKey
 var Srv *server.Server
 var ClientStore *store.ClientStore
 
-func outputHTML(w http.ResponseWriter, req *http.Request, filename string) {
-	file, err := os.Open(filename)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	defer file.Close()
-	fi, _ := file.Stat()
-	http.ServeContent(w, req, file.Name(), fi.ModTime(), file)
-}
 func verifyAuthorizationToken(r *http.Request) (jwt.MapClaims, error) {
 	header := r.Header.Get("Authorization")
 	tokenString := strings.Split(header, " ")[1]

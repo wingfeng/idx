@@ -5,11 +5,14 @@ import (
 	"net/http"
 
 	log "github.com/cihub/seelog"
+	"github.com/gin-gonic/gin"
 )
 
-func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+func UserInfoController(ctx *gin.Context) {
+	w := ctx.Writer
+	r := ctx.Request
 	//w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json")
+	ctx.Header("Content-Type", "application/json")
 
 	token, err := Srv.ValidationBearerToken(r)
 	if err != nil {

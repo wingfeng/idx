@@ -55,7 +55,9 @@ func (m *Manager) MapAccessGenerate(gen oauth2.AccessGenerate) {
 	m.accessGenerate = gen
 }
 func (m *Manager) GetClient(ctx context.Context, clientID string) (cli oauth2.ClientInfo, err error) {
+	log.Debugf("GetClient(%s)", clientID)
 	cli, err = m.clientStore.GetByID(ctx, clientID)
+	log.Debugf("GetClient() = %v, %v", cli, err)
 	if err != nil {
 		return
 	} else if cli == nil {
@@ -66,6 +68,7 @@ func (m *Manager) GetClient(ctx context.Context, clientID string) (cli oauth2.Cl
 
 //GenerateAuthToken generate the authorization token(code)
 func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType, tgr *oauth2.TokenGenerateRequest) (authToken oauth2.TokenInfo, err error) {
+	log.Debugf("GenerateAuthToken(%#v, %#v)", rt, tgr)
 	cli, err := m.clientStore.GetByID(ctx, tgr.ClientID)
 	if err != nil {
 		return nil, err
@@ -156,6 +159,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 	}
 
 	err = m.tokenStore.Create(ctx, ti)
+	log.Debugf("GenerateAuthToken() = %#v %v", authToken, err)
 	if err != nil {
 		return nil, err
 	}
@@ -291,9 +295,11 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 	if err != nil {
 		return nil, err
 	}
-	idToken, _ := m.GetIDToken(ti)
+
 	ti.SetAccess(av)
-	ti.SetAccess(idToken)
+	//先设置AccessToken，因为ID Token里会Hash AccessToken
+	idToken, _ := m.GetIDToken(ti)
+	ti.SetIDToken(idToken)
 	if rv != "" {
 		ti.SetRefresh(rv)
 	}

@@ -2,73 +2,80 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-session/session"
 	"github.com/labstack/gommon/log"
+	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 )
 
 var UserStore *store.DbUserStore
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	store, err := session.Start(r.Context(), w, r)
+func LoginGet(ctx *gin.Context) {
+	w := ctx.Writer
+
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if _, exist := store.Get("LoggedInUserID"); exist {
-		w.Header().Set("Location", "/auth")
-		w.WriteHeader(http.StatusFound)
+		ctx.Redirect(http.StatusFound, "/consent")
 		return
 	}
-	if r.Method == "POST" {
-		if r.Form == nil {
-			if err := r.ParseForm(); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		userName := r.Form.Get("username")
-		pwd := r.Form.Get("password")
-		user, err := UserStore.GetUserByAccount(userName)
+	ctx.HTML(http.StatusFound, "login.html", nil)
+}
 
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func LoginPost(ctx *gin.Context) {
 
-		pwdVerified, err := utils.VerifyPassword(user.PasswordHash, pwd)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if pwdVerified {
-
-			store.Set("LoggedInUserID", user.ID)
-			store.Save()
-			requireConsent := false
-			if v, ok := store.Get("ReturnUri"); ok {
-
-				form := v.(map[string]interface{})
-				clientID := form["client_id"].([]interface{})[0].(string)
-				requireConsent = needConsent(clientID, user.ID)
-			}
-			if requireConsent {
-				w.Header().Set("Location", "/auth")
-				w.WriteHeader(http.StatusFound)
-			} else {
-				w.Header().Set("Location", "/connect/authorize")
-				w.WriteHeader(http.StatusFound)
-			}
-
-			return
-		} else {
-			http.Redirect(w, r, "/login", http.StatusFound)
-		}
-
+	w := ctx.Writer
+	r := ctx.Request
+	core.DumpRequest(os.Stdout, "LoginPost", r)
+	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	outputHTML(w, r, "../static/login.html")
+	r.ParseForm()
+	userName := r.Form.Get("username")
+	pwd := r.Form.Get("password")
+	user, err := UserStore.GetUserByAccount(userName)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	pwdVerified, err := utils.VerifyPassword(user.PasswordHash, pwd)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if pwdVerified {
+
+		store.Set("LoggedInUserID", user.ID)
+		store.Save()
+		requireConsent := false
+		if v, ok := store.Get("ReturnUri"); ok {
+
+			form := v.(map[string]interface{})
+			clientID := form["client_id"].([]interface{})[0].(string)
+			requireConsent = needConsent(clientID, user.ID)
+		}
+		if requireConsent {
+			w.Header().Set("Location", "/consent")
+			w.WriteHeader(http.StatusFound)
+		} else {
+			ctx.Redirect(http.StatusFound, "/connect/authorize")
+		}
+		return
+	} else {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
+
 }
 func needConsent(clientID, userID string) bool {
 	client, err := ClientStore.GetByID(nil, clientID)

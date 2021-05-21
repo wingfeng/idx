@@ -2,9 +2,14 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func RevocateHandler(w http.ResponseWriter, r *http.Request) {
+func RevocateHandler(ctx *gin.Context) {
+	r := ctx.Request
+	w := ctx.Writer
+
 	_, err := verifyAuthorizationToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

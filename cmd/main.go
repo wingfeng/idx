@@ -8,6 +8,7 @@ import (
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 	gormstore "github.com/go-session/gorm"
 	"github.com/go-session/session"
 	"github.com/mash/go-accesslog"
@@ -114,7 +115,7 @@ func main() {
 	openidExt.UserStore = userStore
 
 	srv.SetPasswordAuthorizationHandler(openidExt.PasswordAuthorizationHandler)
-	//	srv.SetClientScopeHandler(openidExt.ClientScopeHandler)
+
 	srv.Config.AllowedResponseTypes = append(srv.Config.AllowedResponseTypes, "id_token")
 	srv.SetUserAuthorizationHandler(openidExt.UserAuthorizeHandler)
 
@@ -122,34 +123,29 @@ func main() {
 		log.Infof("OAuth Server Internal Error:", err.Error())
 		return
 	})
-	// //	srv.ClientInfoHandler = server.ClientFormHandler
-	// srv.SetClientInfoHandler(server.ClientFormHandler)
+
 	srv.SetResponseErrorHandler(func(re *errors.Response) {
 		log.Infof("Response Error:", re.Error.Error())
 	})
-	// htmlTplEngine := template.New("htmlTplEngine")
-	// // 模板根目录下的模板文件 一些公共文件
-	// _, htmlTplEngineErr := htmlTplEngine.ParseGlob("../static/*.html")
-	// if nil != htmlTplEngineErr {
-	// 	seelog.Errorf("解析html模板错误,Error:%s", htmlTplEngineErr.Error())
-	// }
+
 	handlers.Srv = srv
-	//handlers.HTMLTemplate = htmlTplEngine
-	mux := http.NewServeMux()
+	router := gin.Default()
+	router.GET("/login", handlers.LoginGet)
+	router.POST("/login", handlers.LoginPost)
+	router.GET("/consent", handlers.Consent)
 
-	mux.HandleFunc("/login", handlers.LoginHandler)
-	mux.HandleFunc("/auth", handlers.AuthHandler)
+	router.GET("/connect/authorize", handlers.Authorize)
+	router.POST("/connect/authorize", handlers.Authorize)
 
-	mux.HandleFunc("/connect/authorize", handlers.Authorize)
+	router.POST("/connect/token", handlers.TokenController)
+	router.GET("/connect/userinfo", handlers.UserInfoController)
 
-	mux.HandleFunc("/connect/token", handlers.Token)
-	mux.HandleFunc("/connect/userinfo", handlers.UserInfoHandler)
-
-	mux.HandleFunc("/test", handlers.Test)
-	mux.HandleFunc("/.well-known/openid-configuration", handlers.WellknownHandler)
-	mux.HandleFunc("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
-	mux.HandleFunc("/connect/endsession", handlers.LogoutHandler)
-	mux.HandleFunc("/connect/revocation", handlers.RevocateHandler)
+	router.GET("/test", handlers.Test)
+	router.GET("/.well-known/openid-configuration", handlers.WellknownHandler)
+	router.GET("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
+	router.POST("/connect/endsession", handlers.LogoutHandler)
+	router.POST("/connect/revocation", handlers.RevocateHandler)
+	router.LoadHTMLGlob("../static/*")
 	log.Infof("Server is running at %d port.", option.Port)
 	handler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -157,11 +153,11 @@ func main() {
 		AllowedHeaders:   []string{"*"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: false,
-	}).Handler(mux)
+	}).Handler(router)
 	//	handler := cors.Default().Handler(mux)
 	address := fmt.Sprintf("%s:%d", "", option.Port)
-	l := logger{}
-	err = http.ListenAndServe(address, accesslog.NewLoggingHandler(handler, l))
+	//l := logger{}
+	err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
 	if err != nil {
 		log.Error("Server Error:%s", err.Error())
 	}

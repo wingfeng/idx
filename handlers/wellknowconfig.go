@@ -1,16 +1,17 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/wingfeng/idx/core"
 )
 
-func WellknownHandler(w http.ResponseWriter, r *http.Request) {
+func WellknownHandler(ctx *gin.Context) {
 
-	w.Header().Set("Content-Type", "application/json")
+	r := ctx.Request
+
+	ctx.Header("Content-Type", "application/json")
 	config := &core.OpenIDConfig{}
 	scheme := "http"
 	if r.TLS != nil {
@@ -43,7 +44,8 @@ func WellknownHandler(w http.ResponseWriter, r *http.Request) {
 	config.IDTokenSigningAlgValuesSupported = []string{"RS256"}
 	config.SubjectTypesSupported = []string{"public"}
 	config.RequestParameterSupported = true
-	e := json.NewEncoder(w)
-	e.SetIndent("", "  ")
-	e.Encode(config)
+	// e := json.NewEncoder(w)
+	// e.SetIndent("", "  ")
+	// e.Encode(config)
+	ctx.JSON(200, config)
 }

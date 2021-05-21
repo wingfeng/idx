@@ -2,7 +2,10 @@ package core
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httputil"
+	"os"
 	"strings"
 
 	log "github.com/cihub/seelog"
@@ -41,6 +44,8 @@ func NewOpenIDExtend() *OpenIDExtend {
 // 	return true, nil
 // }
 func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
+
+	DumpRequest(os.Stdout, "userAuthorizeHandler", r)
 	store, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		return
@@ -88,4 +93,25 @@ func (oidext *OpenIDExtend) PasswordAuthorizationHandler(username, password stri
 
 	return "", fmt.Errorf("用户%s密码信息错误!", username)
 
+}
+
+func DumpRequest(writer io.Writer, header string, r *http.Request) error {
+	data, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		return err
+	}
+	writer.Write([]byte("\n" + header + " Request: \n"))
+	writer.Write(data)
+	writer.Write([]byte("\n----------------------------------- \n"))
+	return nil
+}
+func DumResponse(writer io.Writer, header string, r *http.Response) error {
+	data, err := httputil.DumpResponse(r, true)
+	if err != nil {
+		return err
+	}
+	writer.Write([]byte("\n" + header + " Response: \n"))
+	writer.Write(data)
+	writer.Write([]byte("\n----------------------------------- \n"))
+	return nil
 }
