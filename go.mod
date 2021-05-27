@@ -9,7 +9,8 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.7.1
-	github.com/go-session/cookie v3.0.1+incompatible
+	github.com/go-jose/go-jose v2.5.1+incompatible // indirect
+	github.com/go-session/cookie v3.0.1+incompatible // indirect
 	//oauth2 v4.2.0
 	github.com/go-session/gorm v0.0.0-20190223144354-7d5f87dcd6c3
 	github.com/go-session/session v3.1.2+incompatible
@@ -22,7 +23,7 @@ require (
 	github.com/magiconair/properties v1.8.1
 	github.com/mash/go-accesslog v1.2.0
 	github.com/mattn/go-colorable v0.1.7 // indirect
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1 // indirect
@@ -34,6 +35,7 @@ require (
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/guregu/null.v4 v4.0.0
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	gorm.io/driver/mysql v1.0.3

@@ -9,3 +9,9 @@
 支持命令行控制CLI   
 
 通过Gin实现对OIDC的Flow进行单元测试，单元测试过程参看:https://openid.net/specs/openid-connect-core-1_0.html   
+
+增加K8S Helm Chart
+Docker的配置以IDX作为前缀          
+IDX_CONNECTION   
+IDX_PORT
+IDX_DRIVER

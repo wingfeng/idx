@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
@@ -12,7 +11,6 @@ import (
 	gormstore "github.com/go-session/gorm"
 	"github.com/go-session/session"
 	"github.com/mash/go-accesslog"
-	"github.com/rs/cors"
 	"github.com/spf13/viper"
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
@@ -147,17 +145,19 @@ func main() {
 	router.POST("/connect/revocation", handlers.RevocateHandler)
 	router.LoadHTMLGlob("../static/*")
 	log.Infof("Server is running at %d port.", option.Port)
-	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowCredentials: true,
-		AllowedHeaders:   []string{"*"},
-		// Enable Debugging for testing, consider disabling in production
-		Debug: false,
-	}).Handler(router)
+	// handler := cors.New(cors.Options{
+	// 	AllowedOrigins:   []string{"*"},
+	// 	AllowCredentials: true,
+	// 	AllowedHeaders:   []string{"*"},
+	// 	// Enable Debugging for testing, consider disabling in production
+	// 	Debug: false,
+	// }).Handler(router)
 	//	handler := cors.Default().Handler(mux)
 	address := fmt.Sprintf("%s:%d", "", option.Port)
 	//l := logger{}
-	err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
+	//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
+	router.Run(address)
+	//err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
 	if err != nil {
 		log.Error("Server Error:%s", err.Error())
 	}
