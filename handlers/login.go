@@ -12,9 +12,11 @@ import (
 	"github.com/wingfeng/idx/utils"
 )
 
-var UserStore *store.DbUserStore
+type LoginController struct {
+	UserStore store.DbUserStore
+}
 
-func LoginGet(ctx *gin.Context) {
+func (ctrl *LoginController) LoginGet(ctx *gin.Context) {
 	w := ctx.Writer
 
 	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
@@ -29,7 +31,7 @@ func LoginGet(ctx *gin.Context) {
 	ctx.HTML(http.StatusFound, "login.html", nil)
 }
 
-func LoginPost(ctx *gin.Context) {
+func (ctrl *LoginController) LoginPost(ctx *gin.Context) {
 
 	w := ctx.Writer
 	r := ctx.Request
@@ -42,7 +44,7 @@ func LoginPost(ctx *gin.Context) {
 	r.ParseForm()
 	userName := r.Form.Get("username")
 	pwd := r.Form.Get("password")
-	user, err := UserStore.GetUserByAccount(userName)
+	user, err := ctrl.UserStore.GetUserByAccount(userName)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

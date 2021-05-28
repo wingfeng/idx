@@ -12,6 +12,6 @@
 
 增加K8S Helm Chart
 Docker的配置以IDX作为前缀          
-IDX_CONNECTION   
-IDX_PORT
+IDX_CONNECTION    
+IDX_PORT   
 IDX_DRIVER

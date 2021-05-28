@@ -6,9 +6,14 @@ import (
 
 	log "github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
+	"github.com/wingfeng/idx/store"
 )
 
-func UserInfoController(ctx *gin.Context) {
+type UserInfoController struct {
+	UserStore *store.DbUserStore
+}
+
+func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
 	w := ctx.Writer
 	r := ctx.Request
 	//w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -22,7 +27,7 @@ func UserInfoController(ctx *gin.Context) {
 
 	if token != nil {
 		id := token.GetUserID()
-		user, err := UserStore.GetUserByID(id)
+		user, err := ctrl.UserStore.GetUserByID(id)
 		result := make(map[string]interface{})
 		result["sub"] = user.ID
 		result["email"] = user.Email

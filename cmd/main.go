@@ -66,6 +66,7 @@ func main() {
 		return
 	}
 	manager := core.NewDefaultManager()
+	manager.HTTPScheme = option.HTTPScheme
 	//	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 	tStore, _ := store.NewMemoryTokenStore()
 	// token store
@@ -101,7 +102,6 @@ func main() {
 	userStore := idxstore.NewDbUserStore(db)
 
 	handlers.ClientStore = clientStore
-	handlers.UserStore = userStore
 
 	manager.SetClientStore(clientStore)
 
@@ -128,15 +128,22 @@ func main() {
 
 	handlers.Srv = srv
 	router := gin.Default()
-	router.GET("/login", handlers.LoginGet)
-	router.POST("/login", handlers.LoginPost)
+	loginCtrl := &handlers.LoginController{
+		UserStore: *userStore,
+	}
+
+	router.GET("/login", loginCtrl.LoginGet)
+	router.POST("/login", loginCtrl.LoginPost)
+	userCtrl := &handlers.UserInfoController{
+		UserStore: userStore,
+	}
+	router.GET("/connect/userinfo", userCtrl.UserInfo)
 	router.GET("/consent", handlers.Consent)
 
 	router.GET("/connect/authorize", handlers.Authorize)
 	router.POST("/connect/authorize", handlers.Authorize)
 
 	router.POST("/connect/token", handlers.TokenController)
-	router.GET("/connect/userinfo", handlers.UserInfoController)
 
 	router.GET("/test", handlers.Test)
 	router.GET("/.well-known/openid-configuration", handlers.WellknownHandler)

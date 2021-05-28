@@ -38,6 +38,8 @@ spec:
              value: "root:eATq1GDhsP@tcp(mysql:3306)/idx?&parseTime=true"
            - name: IDX_PORT
              value: "80"
+           - name: "IDX_HTTPSCHEME"
+             value: "https"
           ports:
             - name: http
               containerPort: 80

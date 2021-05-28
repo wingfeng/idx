@@ -34,6 +34,7 @@ func (idt *IDToken) GetClaims() jwt.MapClaims {
 		result["nonce"] = idt.Nonce
 	}
 	result["preferred_username"] = idt.PreferedUserName
+
 	result["exp"] = idt.Expire
 	result["iat"] = idt.IssueAt
 	if idt.AccessTokenHash != "" {
