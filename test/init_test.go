@@ -119,7 +119,10 @@ func init_router() *gin.Engine {
 	router.POST("/connect/token", handlers.TokenController)
 
 	router.GET("/test", handlers.Test)
-	router.GET("/.well-known/openid-configuration", handlers.WellknownHandler)
+	wellknowCtrl := &handlers.WellknownController{
+		Scheme: "http",
+	}
+	router.GET("/.well-known/openid-configuration", wellknowCtrl.Get)
 	router.GET("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
 	router.POST("/connect/endsession", handlers.LogoutHandler)
 	router.POST("/connect/revocation", handlers.RevocateHandler)

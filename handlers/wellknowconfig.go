@@ -7,17 +7,18 @@ import (
 	"github.com/wingfeng/idx/core"
 )
 
-func WellknownHandler(ctx *gin.Context) {
+type WellknownController struct {
+	Scheme string
+}
+
+func (ctrl *WellknownController) Get(ctx *gin.Context) {
 
 	r := ctx.Request
 
 	ctx.Header("Content-Type", "application/json")
 	config := &core.OpenIDConfig{}
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	config.Issuer = fmt.Sprintf("%s://%s", scheme, r.Host)
+
+	config.Issuer = fmt.Sprintf("%s://%s", ctrl.Scheme, r.Host)
 	config.JwksURI = fmt.Sprintf("%s%s", config.Issuer, "/.well-known/openid-configuration/jwks")
 	config.AuthorizationEndpoint = fmt.Sprintf("%s%s", config.Issuer, "/connect/authorize")
 	config.TokenEndpoint = fmt.Sprintf("%s%s", config.Issuer, "/connect/token")
