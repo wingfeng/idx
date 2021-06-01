@@ -28,7 +28,7 @@ type Manager struct {
 	accessGenerate    oauth2.AccessGenerate
 	tokenStore        oauth2.TokenStore
 	clientStore       oauth2.ClientStore
-	UserStore         *store.DbUserStore
+	UserStore         store.UserStore
 	PrivateKeyBytes   []byte
 	Kid               string
 }
