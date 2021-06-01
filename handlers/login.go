@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-session/session"
 	"github.com/labstack/gommon/log"
-	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 )
@@ -35,7 +33,7 @@ func (ctrl *LoginController) LoginPost(ctx *gin.Context) {
 
 	w := ctx.Writer
 	r := ctx.Request
-	core.DumpRequest(os.Stdout, "LoginPost", r)
+	//	core.DumpRequest(os.Stdout, "LoginPost", r)
 	store, err := session.Start(ctx.Request.Context(), ctx.Writer, ctx.Request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

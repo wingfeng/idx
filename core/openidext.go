@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	log "github.com/cihub/seelog"
@@ -43,7 +42,7 @@ func NewOpenIDExtend() *OpenIDExtend {
 // }
 func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 
-	DumpRequest(os.Stdout, "userAuthorizeHandler", r)
+	//	DumpRequest(os.Stdout, "userAuthorizeHandler", r)
 	sessionStore, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		return

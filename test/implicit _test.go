@@ -17,7 +17,7 @@ func Test_Implicit(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/connect/authorize?response_type=id_token%20token&client_id=implicit_client&redirect_uri=http%3A%2F%2Flocalhost:9000%2Fcb&scope=openid%20profile&state=af0ifjsldkj&nonce=n-0S6_WzA2Mj", nil)
 	router.ServeHTTP(recorder, req)
-	core.DumResponse(os.Stdout, "authorize GET", recorder.Result())
+	//	core.DumResponse(os.Stdout, "authorize GET", recorder.Result())
 	cookies := recorder.Result().Cookies()
 	assert.Equal(t, 302, recorder.Code)
 
