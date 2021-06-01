@@ -140,6 +140,7 @@ func main() {
 		UserStore: userStore,
 	}
 	router.GET("/connect/userinfo", userCtrl.UserInfo)
+	router.POST("/connect/userinfo", userCtrl.UserInfo)
 	router.GET("/consent", handlers.Consent)
 
 	router.GET("/connect/authorize", handlers.Authorize)

@@ -258,17 +258,19 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 		tgr.UserID = ti.GetUserID()
 		tgr.Scope = ti.GetScope()
 		tgr.State = ti.GetState()
+		tgr.Nonce = ti.GetNonce()
+
 		if exp := ti.GetAccessExpiresIn(); exp > 0 {
 			tgr.AccessTokenExp = exp
 		}
 	}
-
 	ti := models.NewToken()
 	ti.SetClientID(tgr.ClientID)
 	ti.SetUserID(tgr.UserID)
 	ti.SetRedirectURI(tgr.RedirectURI)
 	ti.SetScope(tgr.Scope)
 	ti.SetState(tgr.State)
+	ti.SetNonce(tgr.Nonce)
 
 	iss := fmt.Sprintf("%s://%s", m.HTTPScheme, tgr.Request.Host)
 	ti.SetIssuer(iss)
@@ -493,7 +495,7 @@ func (m *Manager) getIDToken(ti oauth2.TokenInfo) (string, error) {
 		Sub:              ti.GetUserID(),
 		PreferedUserName: user.Account,
 		Aud:              ti.GetClientID(),
-		Nonce:            ti.GetState(),
+		Nonce:            ti.GetNonce(),
 		Expire:           iat.Add(aexp).Unix(),
 		IssueAt:          iat.Unix(),
 	}
