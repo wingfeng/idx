@@ -15,6 +15,7 @@ import (
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
 	"github.com/wingfeng/idx/models"
+
 	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/oauth2/errors"
 	"github.com/wingfeng/idx/oauth2/generates"
@@ -111,6 +112,7 @@ func main() {
 	openidExt.PrivateKeyByets = privateKeyBytes
 	openidExt.ClientStore = clientStore
 	openidExt.UserStore = userStore
+	manager.UserStore = userStore
 
 	srv.SetPasswordAuthorizationHandler(openidExt.PasswordAuthorizationHandler)
 

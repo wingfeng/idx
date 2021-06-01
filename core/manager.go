@@ -14,6 +14,7 @@ import (
 	"github.com/wingfeng/idx/oauth2/generates"
 	"github.com/wingfeng/idx/oauth2/manage"
 	"github.com/wingfeng/idx/oauth2/models"
+	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 )
 
@@ -27,6 +28,7 @@ type Manager struct {
 	accessGenerate    oauth2.AccessGenerate
 	tokenStore        oauth2.TokenStore
 	clientStore       oauth2.ClientStore
+	UserStore         *store.DbUserStore
 	PrivateKeyBytes   []byte
 	Kid               string
 }
@@ -152,7 +154,7 @@ func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType,
 
 		}
 		if strings.Contains(string(rt), "id_token") {
-			idToken, err := m.GetIDToken(ti)
+			idToken, err := m.getIDToken(ti)
 			if err != nil {
 				return nil, err
 			}
@@ -291,6 +293,8 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 		CreateAt:  createAt,
 		TokenInfo: ti,
 		Request:   tgr.Request,
+		Issuer:    iss,
+		Nonce:     ti.GetNonce(),
 	}
 
 	av, rv, err := m.accessGenerate.Token(ctx, td, gcfg.IsGenerateRefresh)
@@ -300,7 +304,7 @@ func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, 
 
 	ti.SetAccess(av)
 	//先设置AccessToken，因为ID Token里会Hash AccessToken
-	idToken, _ := m.GetIDToken(ti)
+	idToken, _ := m.getIDToken(ti)
 	ti.SetIDToken(idToken)
 	if rv != "" {
 		ti.SetRefresh(rv)
@@ -456,27 +460,6 @@ func (m *Manager) LoadRefreshToken(ctx context.Context, refresh string) (oauth2.
 	return ti, nil
 }
 
-// func (m *Manager) validateURI(cli *idxmodels.Client, rawuri string) error {
-// 	url, err := url.Parse(rawuri)
-// 	if err != nil {
-// 		log.Errorf("传入URL错误!%s", url)
-// 	}
-
-// 	allowUris, err := m.clientStore.GetClientRedirectUris(cli.ID)
-// 	if err != nil {
-// 		log.Error("校验返回Uri错误!")
-// 	}
-// 	for _, s := range allowUris {
-
-// 		surl, _ := url.Parse(s)
-// 		//当scheme和host都相同就确认可以返回。
-// 		if strings.EqualFold(url.Scheme, surl.Scheme) && strings.EqualFold(url.Host, surl.Host) {
-// 			return nil
-// 		}
-// 	}
-// 	return log.Errorf("不合法的Uri:%s", rawuri)
-// }
-
 // get grant type config
 func (m *Manager) grantConfig(gt oauth2.GrantType) *manage.Config {
 	if c, ok := m.gtcfg[gt]; ok && c != nil {
@@ -495,18 +478,24 @@ func (m *Manager) grantConfig(gt oauth2.GrantType) *manage.Config {
 	return &manage.Config{}
 }
 
-func (m *Manager) GetIDToken(ti oauth2.TokenInfo) (string, error) {
+func (m *Manager) getIDToken(ti oauth2.TokenInfo) (string, error) {
+	uId := ti.GetUserID()
+	user, err := m.UserStore.GetUserByID(uId)
+	if err != nil {
+		return "", err
+	}
 	//根据配置获取token过期时间
 	icfg := m.grantConfig(oauth2.Implicit)
 	aexp := icfg.AccessTokenExp
 	iat := time.Now()
 	idToken := &IDToken{
-		Issuer:  ti.GetIssuer(),
-		Sub:     ti.GetUserID(),
-		Aud:     ti.GetClientID(),
-		Nonce:   ti.GetState(),
-		Expire:  iat.Add(aexp).Unix(),
-		IssueAt: iat.Unix(),
+		Issuer:           ti.GetIssuer(),
+		Sub:              ti.GetUserID(),
+		PreferedUserName: user.Account,
+		Aud:              ti.GetClientID(),
+		Nonce:            ti.GetState(),
+		Expire:           iat.Add(aexp).Unix(),
+		IssueAt:          iat.Unix(),
 	}
 	nonce := ti.GetNonce()
 	if !strings.EqualFold(nonce, "") {
@@ -516,6 +505,13 @@ func (m *Manager) GetIDToken(ti oauth2.TokenInfo) (string, error) {
 		idToken.AccessTokenHash = utils.HashAccessToken(ti.GetAccess())
 	}
 	claims := idToken.GetClaims()
+	scopes := strings.Split(ti.GetScope(), " ")
+	for _, scope := range scopes {
+		if scope == "email" {
+			claims["email"] = user.Email
+		}
+	}
+
 	signMethod := jwt.SigningMethodRS256
 	token := jwt.NewWithClaims(signMethod, claims)
 

@@ -9,6 +9,8 @@ import (
 type (
 	// GenerateBasic provide the basis of the generated token data
 	GenerateBasic struct {
+		Issuer    string
+		Nonce     string
 		Client    ClientInfo
 		UserID    string
 		CreateAt  time.Time

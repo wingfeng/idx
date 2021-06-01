@@ -44,10 +44,11 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
-          livenessProbe:
+          livenessProbe:            
             httpGet:
               path: /.well-known/openid-configuration
               port: http
+              
           readinessProbe:
             httpGet:
               path: /.well-known/openid-configuration

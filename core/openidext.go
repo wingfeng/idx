@@ -2,9 +2,7 @@ package core
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"strings"
 
@@ -46,12 +44,12 @@ func NewOpenIDExtend() *OpenIDExtend {
 func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.Request) (userID string, err error) {
 
 	DumpRequest(os.Stdout, "userAuthorizeHandler", r)
-	store, err := session.Start(r.Context(), w, r)
+	sessionStore, err := session.Start(r.Context(), w, r)
 	if err != nil {
 		return
 	}
 
-	uid, ok := store.Get("LoggedInUserID")
+	uid, ok := sessionStore.Get("LoggedInUserID")
 	if !ok {
 		if r.Form == nil {
 			r.ParseForm()
@@ -59,10 +57,10 @@ func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.
 		returnURI := r.Form
 		state := r.Form.Get("state")
 		if !strings.EqualFold(state, "") {
-			store.Set("state", state)
+			sessionStore.Set("state", state)
 		}
-		store.Set("ReturnUri", returnURI)
-		store.Save()
+		sessionStore.Set("ReturnUri", returnURI)
+		sessionStore.Save()
 
 		w.Header().Set("Location", "/login")
 		w.WriteHeader(http.StatusFound)
@@ -71,7 +69,7 @@ func (oidext *OpenIDExtend) UserAuthorizeHandler(w http.ResponseWriter, r *http.
 
 	userID = uid.(string)
 	//	store.Delete("LoggedInUserID")
-	store.Save()
+	sessionStore.Save()
 	return
 }
 func (oidext *OpenIDExtend) PasswordAuthorizationHandler(username, password string) (userID string, err error) {
@@ -93,25 +91,4 @@ func (oidext *OpenIDExtend) PasswordAuthorizationHandler(username, password stri
 
 	return "", fmt.Errorf("用户%s密码信息错误!", username)
 
-}
-
-func DumpRequest(writer io.Writer, header string, r *http.Request) error {
-	data, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		return err
-	}
-	writer.Write([]byte("\n" + header + " Request: \n"))
-	writer.Write(data)
-	writer.Write([]byte("\n----------------------------------- \n"))
-	return nil
-}
-func DumResponse(writer io.Writer, header string, r *http.Response) error {
-	data, err := httputil.DumpResponse(r, true)
-	if err != nil {
-		return err
-	}
-	writer.Write([]byte("\n" + header + " Response: \n"))
-	writer.Write(data)
-	writer.Write([]byte("\n----------------------------------- \n"))
-	return nil
 }

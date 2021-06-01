@@ -22,7 +22,7 @@ import (
 func init_router() *gin.Engine {
 
 	dbDriver := "mysql"
-	dbConnection := "root:eATq1GDhsP@tcp(localhost:3306)/idx?&parseTime=true"
+	dbConnection := "root:eATq1GDhsP@tcp(localhost:31332)/idx?&parseTime=true"
 	certKeyPath := "../certs/rsa_pri.key"
 	certPath := "../certs/rsa_pub.pem"
 	// hashKey := []byte("FF51A553-72FC-478B-9AEF-93D6F506DE91")
@@ -77,6 +77,7 @@ func init_router() *gin.Engine {
 	handlers.ClientStore = clientStore
 
 	manager.SetClientStore(clientStore)
+	manager.UserStore = userStore
 
 	srv := server.NewServer(server.NewConfig(), manager)
 

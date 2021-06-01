@@ -43,13 +43,20 @@ type JWTAccessGenerate struct {
 
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
-	claims := &JWTAccessClaims{
-		StandardClaims: jwt.StandardClaims{
-			Audience:  data.Client.GetID(),
-			Subject:   data.UserID,
-			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
-		},
-	}
+	// claims := &JWTAccessClaims{
+	// 	StandardClaims: jwt.StandardClaims{
+	// 		Issuer:    data.Issuer,
+	// 		Audience:  data.Client.GetID(),
+	// 		Subject:   data.UserID,
+	// 		ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+	// 	},
+	// }
+	claims := jwt.MapClaims{}
+	claims["iss"] = data.Issuer
+	claims["aud"] = data.Client.GetID()
+	claims["sub"] = data.UserID
+	claims["exp"] = data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix()
+	claims["nonce"] = data.Nonce
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
 	if a.SignedKeyID != "" {

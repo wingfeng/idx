@@ -1,6 +1,6 @@
   port: 9096
   driver: "mysql"
-  connection: "root:eATq1GDhsP@tcp(localhost:3306)/idx?&parseTime=true"
+  connection: "root:eATq1GDhsP@tcp(localhost:31332)/idx?&parseTime=true"
   privatekeypath: "../certs/rsa_pri.key"
   publickeypath: "../certs/rsa_pub.pem"
   httpscheme: "http"

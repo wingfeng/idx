@@ -50,5 +50,5 @@ type Manager interface {
 	// according to the refresh token for corresponding token information
 	LoadRefreshToken(ctx context.Context, refresh string) (ti TokenInfo, err error)
 
-	GetIDToken(ti TokenInfo) (string, error)
+	// GetIDToken(ti TokenInfo) (string, error)
 }

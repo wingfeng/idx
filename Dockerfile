@@ -21,9 +21,11 @@ RUN make APP_VERSION=${APP_VERSION}
 
 FROM alpine:latest
 WORKDIR /
+
 COPY --from=builder /app/cmd/idx /app/
 COPY --from=builder /app/conf ./conf
 COPY --from=builder /app/certs ./certs
+
 COPY --from=builder /app/static ./static
 #cluster port
 EXPOSE 80

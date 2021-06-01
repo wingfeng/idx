@@ -43,5 +43,14 @@ func (ds *DbUserStore) GetUserPasswordHash(account string) (string, error) {
 		return "", err
 	}
 	return user.PasswordHash, err
+}
+func (ds *DbUserStore) GetClaims(account string, scope string) (interface{}, error) {
+	var results []map[string]interface{}
 
+	err := ds.db.Select(scope).Where("Account=?", account).First(results).Error
+	if err != nil {
+		return "", err
+	}
+
+	return results[0][scope], nil
 }
