@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	log "github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 type UserInfoController struct {
 	UserStore *store.DbUserStore
 }
+type emptyStruct struct{}
 
 func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
 	w := ctx.Writer
@@ -27,15 +29,27 @@ func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
 
 	if token != nil {
 		id := token.GetUserID()
+		sp := strings.Split(token.GetScope(), " ")
+		scopes := make(map[string]*emptyStruct)
+		for _, sc := range sp {
+			scopes[sc] = &emptyStruct{}
+		}
 		user, err := ctrl.UserStore.GetUserByID(id)
+
 		result := make(map[string]interface{})
 		result["sub"] = user.ID
-		result["email"] = user.Email
-		result["email_verified"] = user.EmailConfirmed
 		result["display_name"] = user.DisplayName
 		result["preferred_username"] = user.Account
-		result["ou"] = user.OU
-		result["ouid"] = user.OUID
+
+		if scopes["email"] != nil {
+			result["email"] = user.Email
+			result["email_verified"] = user.EmailConfirmed
+		}
+
+		if scopes["profile"] != nil {
+			result["ou"] = user.OU
+			result["ouid"] = user.OUID
+		}
 		if err != nil {
 			log.Errorf("获取用户错误,Error:%s", err.Error())
 		}

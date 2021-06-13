@@ -25,7 +25,7 @@ func NewClientStore(db *gorm.DB) *ClientStore {
 //GetByID 通过ID获取Client信息
 func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 	client := &idxmodels.Client{}
-	err := cs.DB.Where("ClientId=?", id).First(client).Error
+	err := cs.DB.Where("ClientId=? and Enabled=1", id).First(client).Error
 	if err != nil {
 		return nil, err
 	}
