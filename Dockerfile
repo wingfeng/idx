@@ -9,8 +9,8 @@ ENV CA_PORT=80
 WORKDIR /app
 RUN make APP_VERSION=${APP_VERSION}
 #RUN go mod vendor
-# RUN go build -mod=vendor -o easyca -a -ldflags "-extldflags '-static' -s -X 'main.AppName=${APP_NAME}' \
-# 				 -X 'conf.AppVersion=${APP_VERSION}' \ 
+#RUN go build -mod=vendor -o easyca -a -ldflags "-extldflags '-static' -s -X 'main.AppName=${APP_NAME}' \
+# 				-X 'conf.AppVersion=${APP_VERSION}' \ 
 # 				-X 'conf.BuildVersion=${BUILD_VERSION}' \
 # 				-X 'conf.BuildTime=${BUILD_TIME}' \
 # 				-X 'conf.GitRevision=${GIT_REVISION}' \

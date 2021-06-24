@@ -3,15 +3,15 @@ package test
 import (
 	"context"
 	"database/sql"
-	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	log "github.com/cihub/seelog"
 	"github.com/magiconair/properties/assert"
+	"github.com/patrickmn/go-cache"
 	"github.com/wingfeng/idx/models"
-	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
 	"gorm.io/driver/mysql"
@@ -19,37 +19,39 @@ import (
 )
 
 func TestClientStore_GetByID(t *testing.T) {
-	type fields struct {
-		DB *gorm.DB
+	db = GetDB("mysql", "root:eATq1GDhsP@tcp(172.26.214.110:31332)/idx?&parseTime=true")
+
+	gocache := cache.New(5*time.Minute, 60*time.Second)
+
+	cs := &store.ClientStore{
+		DB:    db,
+		Cache: gocache,
 	}
-	type args struct {
-		ctx context.Context
-		id  string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *idxmodels.Client
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cs := &store.ClientStore{
-				DB: tt.fields.DB,
-			}
-			got, err := cs.GetByID(tt.args.ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ClientStore.GetByID() error = %v, wantErr %v", err, tt.wantErr)
+
+	ctx := context.Background()
+	wg := sync.WaitGroup{}
+	//
+	// c := 0
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(j int) {
+			got, err := cs.GetByID(ctx, "local_test")
+
+			if err != nil {
+				t.Errorf("ClientStore.GetByID() error = %v, wantErr ", err)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ClientStore.GetByID() = %v, want %v", got, tt.want)
-			}
-		})
+			t.Logf("Client:%v", got)
+			// c = c + j
+			// t.Logf("Counter:%d", c)
+			// if c == 4950 {
+			// 	wg.Done()
+			// }
+			wg.Done()
+		}(i)
+
 	}
+	wg.Wait()
 }
 func GetDB(driver string, connection string) *gorm.DB {
 	if strings.EqualFold(driver, "") {
@@ -73,7 +75,7 @@ var db *gorm.DB
 
 func initTest() {
 	//初始化DB
-	db = GetDB("mysql", "root:eATq1GDhsP@tcp(localhost:3306)/idx?&parseTime=true")
+	db = GetDB("mysql", "root:eATq1GDhsP@tcp(localhost:31332)/idx?&parseTime=true")
 	models.Sync2Db(db)
 }
 func TestSeedData(t *testing.T) {

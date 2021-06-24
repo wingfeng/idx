@@ -14,5 +14,17 @@
             "username": "root",
             "password": "eATq1GDhsP"
         }
-    ]
+    ],
+    "redisXplorer.config": {
+        "profiles": [
+            {
+                "name": "localhost",
+                "host": "localhost",
+                "accessKey": "",
+                "filter": "*",
+                "port": "30248"
+            }
+        ],
+        "scanLimit": 200
+    }
 }

@@ -10,12 +10,13 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.7.1
 	github.com/go-jose/go-jose v2.5.1+incompatible // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
+	github.com/go-redis/redis/v8 v8.10.0
 	github.com/go-session/cookie v3.0.1+incompatible // indirect
 	//oauth2 v4.2.0
 	github.com/go-session/gorm v0.0.0-20190223144354-7d5f87dcd6c3
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/golang/protobuf v1.4.2 // indirect
-	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/uuid v1.1.5
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/jinzhu/gorm v1.9.16 // indirect
@@ -23,13 +24,12 @@ require (
 	github.com/magiconair/properties v1.8.1
 	github.com/mash/go-accesslog v1.2.0
 	github.com/mattn/go-colorable v0.1.7 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tidwall/buntdb v1.1.7
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect

@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	gormstore "github.com/go-session/gorm"
 	"github.com/go-session/session"
-	"github.com/mash/go-accesslog"
+
 	"github.com/spf13/viper"
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
@@ -37,13 +37,6 @@ var (
 	GoVersion    string // Golang信息
 )
 
-type logger struct {
-}
-
-func (l logger) Log(record accesslog.LogRecord) {
-	log.Debugf(record.Method + " " + record.Uri)
-}
-
 func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
 	flag.Parse()
@@ -52,6 +45,16 @@ func main() {
 		return
 	}
 	option := initConfig()
+	//配置Log
+	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
+	logLevel, lex := log.LogLevelFromString(option.LogLevel)
+	if !lex {
+		logLevel = log.DebugLvl
+	}
+	logger, _ := log.LoggerFromWriterWithMinLevel(consoleWriter, logLevel)
+	log.ReplaceLogger(logger)
+	defer log.Flush()
+
 	sessionstore := gormstore.MustStore(gormstore.Config{}, option.Driver, option.Connection)
 	defer sessionstore.Close()
 
@@ -67,6 +70,7 @@ func main() {
 		return
 	}
 	manager := core.NewDefaultManager()
+
 	manager.HTTPScheme = option.HTTPScheme
 	//	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 	tStore, _ := store.NewMemoryTokenStore()
@@ -100,6 +104,7 @@ func main() {
 	db := utils.GetDB(option.Driver, option.Connection)
 	idxmodels.Sync2Db(db)
 	clientStore := idxstore.NewClientStore(db)
+	//clientStore.Cache = rdb
 	userStore := idxstore.NewDbUserStore(db)
 
 	handlers.ClientStore = clientStore

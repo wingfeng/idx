@@ -3,7 +3,11 @@ package store
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
+	"github.com/cihub/seelog"
+	"github.com/wingfeng/idx/cache"
 	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/utils"
@@ -12,7 +16,9 @@ import (
 
 //ClientStore  用于存储Client信息的
 type ClientStore struct {
-	DB *gorm.DB
+	DB    *gorm.DB
+	Cache cache.ICacheProvider
+	mutex sync.RWMutex
 }
 
 func NewClientStore(db *gorm.DB) *ClientStore {
@@ -24,14 +30,38 @@ func NewClientStore(db *gorm.DB) *ClientStore {
 
 //GetByID 通过ID获取Client信息
 func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
-	client := &idxmodels.Client{}
-	err := cs.DB.Where("ClientId=? and Enabled=1", id).First(client).Error
-	if err != nil {
-		return nil, err
+	var client *idxmodels.Client
+	var err error
+	if cs.Cache != nil {
+		cs.mutex.RLock()
+		obj, exist := cs.Cache.Get(id)
+		cs.mutex.RUnlock()
+		if exist && obj != nil {
+			seelog.Tracef("Load from cache")
+
+			client = obj.(*idxmodels.Client)
+		} else {
+			cs.mutex.Lock()
+			client, err = cs.getFromDB(id)
+			cs.Cache.Set(id, client, 2*time.Minute)
+
+			cs.mutex.Unlock()
+		}
+	} else {
+		client, err = cs.getFromDB(id)
 	}
 	return client, err
 }
-
+func (cs *ClientStore) getFromDB(id string) (*idxmodels.Client, error) {
+	client := &idxmodels.Client{}
+	seelog.Tracef("Load client from db")
+	err := cs.DB.Where("ClientId=? and Enabled=1", id).First(client).Error
+	if err != nil {
+		seelog.Errorf("DB Error :%v", err)
+		return nil, err
+	}
+	return client, nil
+}
 func (cs *ClientStore) ValidateSecret(clientId, secret string) error {
 	key := utils.HashString(secret)
 	var count int64
