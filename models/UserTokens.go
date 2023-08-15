@@ -4,11 +4,11 @@ import "github.com/wingfeng/idx/utils"
 
 // UserTokens [...]
 type UserTokens struct {
-	UserID string `gorm:"primary_key;column:UserId;type:varchar(255);not null"`
+	UserID string `gorm:"primary_key;column:userid;type:varchar(255);not null"`
 
-	LoginProvider string `gorm:"primary_key;column:LoginProvider;type:varchar(255);not null"`
-	Name          string `gorm:"primary_key;column:Name;type:varchar(255);not null"`
-	Value         string `gorm:"column:Value;type:longtext"`
-	Users         User   `gorm:"foreignkey:UserId"`
+	LoginProvider string `gorm:"primary_key;column:loginprovider;type:varchar(255);not null"`
+	Name          string `gorm:"primary_key;column:name;type:varchar(255);not null"`
+	Value         string `gorm:"column:value;type:text"`
+	Users         User   `gorm:"foreignkey:userid"`
 	utils.Record  `gorm:"embedded"`
 }

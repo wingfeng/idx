@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/labstack/gommon/log"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -30,7 +31,7 @@ func GetDB(driver string, connection string) *gorm.DB {
 		}), &gorm.Config{})
 
 		break
-	case "postgres":
+	case "pgx":
 		x, err = gorm.Open(postgres.New(postgres.Config{
 			Conn: sqlDB,
 		}), &gorm.Config{})

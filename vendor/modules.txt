@@ -105,6 +105,11 @@ github.com/labstack/gommon/log
 # github.com/leodido/go-urn v1.2.0
 ## explicit; go 1.13
 github.com/leodido/go-urn
+# github.com/lib/pq v1.10.9
+## explicit; go 1.13
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram
 # github.com/magiconair/properties v1.8.1
 ## explicit
 github.com/magiconair/properties
@@ -263,7 +268,7 @@ gorm.io/driver/mysql
 # gorm.io/driver/postgres v1.5.2
 ## explicit; go 1.18
 gorm.io/driver/postgres
-# gorm.io/gorm v1.25.1
+# gorm.io/gorm v1.25.3
 ## explicit; go 1.16
 gorm.io/gorm
 gorm.io/gorm/callbacks

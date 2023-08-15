@@ -39,12 +39,16 @@ var (
 
 func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
-
-	option := initConfig()
+	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")
+	syncDb := flag.Bool("syncdb", false, "同步数据结构到数据库.")
+	flag.Parse()
 	if *showVersion {
 		Version()
 		return
 	}
+	option := initConfig(*confPath)
+	option.SyncDB = *syncDb
+
 	//配置Log
 	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
 	logLevel, lex := log.LogLevelFromString(option.LogLevel)
@@ -181,12 +185,9 @@ func main() {
 	}
 
 }
-func initConfig() *Option {
-	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")
-	syncDb := flag.Bool("syncdb", false, "同步数据结构到数据库.")
-	flag.Parse()
+func initConfig(confPath string) *Option {
 
-	viper.SetConfigFile(*confPath)
+	viper.SetConfigFile(confPath)
 	viper.AddConfigPath(".")
 	viper.SetConfigType("yaml")
 	viper.AllowEmptyEnv(true)
@@ -198,7 +199,7 @@ func initConfig() *Option {
 	viper.AutomaticEnv()
 
 	opts := &Option{}
-	opts.SyncDB = *syncDb
+
 	err = viper.Unmarshal(opts)
 	if err != nil {
 		log.Error("读取配置错误:", err)

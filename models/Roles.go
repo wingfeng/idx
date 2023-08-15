@@ -9,11 +9,11 @@ import (
 
 // Role [...]
 type Role struct {
-	ID               string `gorm:"primary_key;column:Id;type:varchar(255);not null"`
-	Name             string `gorm:"column:Name;type:varchar(256)"`
-	NormalizedName   string `gorm:"unique;column:NormalizedName;type:varchar(256)"`
-	ConcurrencyStamp string `gorm:"column:ConcurrencyStamp;type:longtext"`
-	utils.Record     `gorm:"embedded"`
+	ID             string `json:"id" gorm:"primary_key;column:id;type:varchar(255);not null"`
+	Name           string `gorm:"column:name;type:varchar(256)"`
+	NormalizedName string `gorm:"unique;column:normalizedname;type:varchar(256)"`
+
+	utils.Record `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -21,7 +21,7 @@ type Role struct {
 // 	return "Roles"
 // }
 
-//SetID 获取当前记录的ID
+// SetID 获取当前记录的ID
 func (r *Role) SetID(v interface{}) {
 	r.ID = v.(string)
 }

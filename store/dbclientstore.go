@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//ClientStore  用于存储Client信息的
+// ClientStore  用于存储Client信息的
 type ClientStore struct {
 	DB    *gorm.DB
 	Cache cache.ICacheProvider
@@ -28,7 +28,7 @@ func NewClientStore(db *gorm.DB) *ClientStore {
 	return cs
 }
 
-//GetByID 通过ID获取Client信息
+// GetByID 通过ID获取Client信息
 func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInfo, error) {
 	var client *idxmodels.Client
 	var err error
@@ -55,7 +55,9 @@ func (cs *ClientStore) GetByID(ctx context.Context, id string) (oauth2.ClientInf
 func (cs *ClientStore) getFromDB(id string) (*idxmodels.Client, error) {
 	client := &idxmodels.Client{}
 	seelog.Tracef("Load client from db")
-	err := cs.DB.Where("ClientId=? and Enabled=1", id).First(client).Error
+	client.ClientCode = id
+	client.Enabled = true
+	err := cs.DB.Where(client).First(client).Error
 	if err != nil {
 		seelog.Errorf("DB Error :%v", err)
 		return nil, err
@@ -66,7 +68,7 @@ func (cs *ClientStore) ValidateSecret(clientId, secret string) error {
 	key := utils.HashString(secret)
 	var count int64
 	err := cs.DB.Table("client_secrets as cs ").Select("Count(1)").Joins("join clients as c on cs.ClientId=c.Id").
-		Where("c.ClientId=? and cs.Value=? and cs.Expiration>Now()", clientId, key).Count(&count).Error
+		Where("c.clientcode=? and cs.value=? and cs.expiration>Now()", clientId, key).Count(&count).Error
 	if err == nil && count < 1 {
 		err = fmt.Errorf("Client %s Secret not validate", clientId)
 	}

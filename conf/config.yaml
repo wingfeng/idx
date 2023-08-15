@@ -1,7 +1,9 @@
   LogLevel: "debug"
   port: 9096
-  driver: "mysql"
-  connection: "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true"
+  # driver: "mysql"
+  # connection: "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true"
+  driver: "pgx"
+  connection: "host=localhost user=postgres password=pass@word1 dbname=idx port=5432 sslmode=disable TimeZone=Asia/Shanghai"
   privatekeypath: "../certs/rsa_pri.key"
   publickeypath: "../certs/rsa_pub.pem"
   httpscheme: "http"

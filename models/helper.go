@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//Sync2Db 将struct同步数据结构到数据库
+// Sync2Db 将struct同步数据结构到数据库
 func Sync2Db(x *gorm.DB) {
 	x.DisableForeignKeyConstraintWhenMigrating = true
 
@@ -17,7 +17,11 @@ func Sync2Db(x *gorm.DB) {
 		new(APIResources),
 		new(APIScopeClaims),
 		new(APIScopes),
-		new(APISecrets),
+		new(APISecrets))
+	if err != nil {
+		log.Errorf("同步数据结构错误,Error:%v", err)
+	}
+	err = x.AutoMigrate(
 
 		new(ClientClaims),
 		new(ClientCorsOrigins),

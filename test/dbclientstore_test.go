@@ -2,24 +2,20 @@ package test
 
 import (
 	"context"
-	"database/sql"
-	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	log "github.com/cihub/seelog"
 	"github.com/magiconair/properties/assert"
 	"github.com/patrickmn/go-cache"
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/store"
 	"github.com/wingfeng/idx/utils"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func TestClientStore_GetByID(t *testing.T) {
-	db = GetDB("mysql", "root:eATq1GDhsP@tcp(172.26.214.110:31332)/idx?&parseTime=true")
+	initTest()
 
 	gocache := cache.New(5*time.Minute, 60*time.Second)
 
@@ -53,29 +49,25 @@ func TestClientStore_GetByID(t *testing.T) {
 	}
 	wg.Wait()
 }
-func GetDB(driver string, connection string) *gorm.DB {
-	if strings.EqualFold(driver, "") {
-		driver = "mysql"
+
+func TestClientStore_VerifySecret(t *testing.T) {
+	initTest()
+	gocache := cache.New(5*time.Minute, 60*time.Second)
+
+	cs := &store.ClientStore{
+		DB:    db,
+		Cache: gocache,
 	}
-
-	var err error
-	sqlDB, err := sql.Open(driver, connection)
-	x, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: sqlDB,
-	}), &gorm.Config{})
-
-	if nil != err {
-		log.Error("init" + err.Error())
-	}
-
-	return x
+	cs.ValidateSecret("hybrid_client", "hybrid_secret")
 }
 
 var db *gorm.DB
 
 func initTest() {
 	//初始化DB
-	db = GetDB("mysql", "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true")
+	//db = utils.GetDB("mysql", "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true")
+	db = utils.GetDB("pgx", "host=localhost user=postgres password=pass@word1 dbname=idx port=5432 sslmode=disable TimeZone=Asia/Shanghai")
+	//
 	models.Sync2Db(db)
 }
 func TestSeedData(t *testing.T) {
@@ -144,7 +136,7 @@ func addClient(clientID, secret, grantType string) {
 	requireSecret := len(secret) > 0
 	client := &models.Client{
 
-		ClientID:                         clientID,
+		ClientCode:                       clientID,
 		Enabled:                          true,
 		ProtocolType:                     "oidc",
 		RequireClientSecret:              requireSecret,

@@ -4,11 +4,11 @@ import "github.com/wingfeng/idx/utils"
 
 // RoleClaims [...]
 type RoleClaims struct {
-	ID           int    `gorm:"primary_key;auto_Increment;column:Id;not null"`
-	RoleID       string `gorm:"index:IX_RoleClaims_RoleId;column:RoleId;type:varchar(255);not null"`
-	Roles        Role   `gorm:"association_foreignkey:RoleId;foreignkey:Id"`
-	ClaimType    string `gorm:"column:ClaimType;type:longtext"`
-	ClaimValue   string `gorm:"column:ClaimValue;type:longtext"`
+	ID           int    `gorm:"primary_key;auto_Increment;column:id;not null"`
+	RoleID       string `gorm:"index:IX_RoleClaims_RoleId;column:roleid;type:varchar(255);not null"`
+	Roles        Role   `gorm:"foreignkey:roleid;reference:Id"`
+	ClaimType    string `gorm:"column:claimtype;type:text"`
+	ClaimValue   string `gorm:"column:claimvalue;type:text"`
 	utils.Record `gorm:"embedded"`
 }
 

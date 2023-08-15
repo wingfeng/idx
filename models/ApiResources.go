@@ -9,14 +9,14 @@ import (
 
 // APIResources [...]
 type APIResources struct {
-	ID           int       `gorm:"primary_key;autoIncrement;column:Id;not null"`
-	Enabled      bool      `gorm:"column:Enabled;type:tinyint(1);not null"`
-	Name         string    `gorm:"unique;column:Name;type:varchar(200);not null"`
-	DisplayName  string    `gorm:"column:DisplayName;type:varchar(200)"`
-	Description  string    `gorm:"column:Description;type:varchar(1000)"`
-	Created      time.Time `gorm:"column:Created;type:datetime(6);not null"`
-	Updated      null.Time `gorm:"column:Updated;type:datetime(6)"`
-	LastAccessed null.Time `gorm:"column:LastAccessed;type:datetime(6)"`
-	NonEditable  bool      `gorm:"column:NonEditable;type:tinyint(1);not null"`
+	ID           int       `gorm:"primary_key;autoIncrement;column:id;not null"`
+	Enabled      bool      `gorm:"column:enabled;not null"`
+	Name         string    `gorm:"unique;column:name;type:varchar(200);not null"`
+	DisplayName  string    `gorm:"column:displayname;type:varchar(200)"`
+	Description  string    `gorm:"column:description;type:varchar(1000)"`
+	Created      time.Time `gorm:"column:created;not null"`
+	Updated      null.Time `gorm:"column:updated;"`
+	LastAccessed null.Time `gorm:"column:lastaccessed;"`
+	NonEditable  bool      `gorm:"column:noneditable;not null"`
 	utils.Record `gorm:"embedded"`
 }
