@@ -39,12 +39,12 @@ var (
 
 func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
-	flag.Parse()
+
+	option := initConfig()
 	if *showVersion {
 		Version()
 		return
 	}
-	option := initConfig()
 	//配置Log
 	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
 	logLevel, lex := log.LogLevelFromString(option.LogLevel)

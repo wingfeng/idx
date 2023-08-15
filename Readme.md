@@ -17,3 +17,6 @@ IDX_CONNECTION
 IDX_PORT   
 IDX_DRIVER   
 IDX_HTTPSCHEME   
+
+生成测试数据
+/test/dbclientstore_test.go

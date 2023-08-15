@@ -75,7 +75,7 @@ var db *gorm.DB
 
 func initTest() {
 	//初始化DB
-	db = GetDB("mysql", "root:eATq1GDhsP@tcp(localhost:31332)/idx?&parseTime=true")
+	db = GetDB("mysql", "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true")
 	models.Sync2Db(db)
 }
 func TestSeedData(t *testing.T) {
@@ -122,6 +122,7 @@ func TestSeedData(t *testing.T) {
 	addClient("hybrid_client", "hybrid_secret", "hybrid")
 	addClient("code_client", "code_secret", "authorization_code")
 	addClient("password_client", "password_secret", "password")
+	addClient("local_test", "local_secret", "authorization_code")
 
 }
 func TestInsertHybrid(t *testing.T) {
