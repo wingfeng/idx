@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
@@ -16,7 +16,6 @@ import (
 	"github.com/wingfeng/idx/handlers"
 	"github.com/wingfeng/idx/models"
 
-	idxmodels "github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/oauth2/errors"
 	"github.com/wingfeng/idx/oauth2/generates"
 	"github.com/wingfeng/idx/oauth2/server"
@@ -81,12 +80,12 @@ func main() {
 	tStore, _ := store.NewMemoryTokenStore()
 	// token store
 	manager.SetTokenStore(tStore)
-	privateKeyBytes, err := ioutil.ReadFile(option.PrivateKeyPath)
+	privateKeyBytes, err := os.ReadFile(option.PrivateKeyPath)
 	if err != nil {
 		log.Errorf("读取私钥错误!,Err:%s", err.Error())
 	}
 
-	publicKeyBytes, err := ioutil.ReadFile(option.PublicKeyPath)
+	publicKeyBytes, err := os.ReadFile(option.PublicKeyPath)
 	if err != nil {
 		log.Errorf("读取公钥错误!,Err:%s", err.Error())
 	}
@@ -107,7 +106,7 @@ func main() {
 	manager.Kid = kid
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
-	idxmodels.Sync2Db(db)
+	models.Sync2Db(db)
 	clientStore := idxstore.NewClientStore(db)
 	//clientStore.Cache = rdb
 	userStore := idxstore.NewDbUserStore(db)
