@@ -8,9 +8,9 @@ import (
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	gormstore "github.com/go-session/gorm"
-	"github.com/go-session/session"
+	"github.com/go-session/redis/v3"
 
+	"github.com/go-session/session/v3"
 	"github.com/spf13/viper"
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
@@ -58,12 +58,13 @@ func main() {
 	logger, _ := log.LoggerFromWriterWithMinLevel(consoleWriter, logLevel)
 	log.ReplaceLogger(logger)
 	defer log.Flush()
-
-	sessionstore := gormstore.MustStore(gormstore.Config{}, option.Driver, option.Connection)
-	defer sessionstore.Close()
+	redisLink := fmt.Sprintf("%s:%d", option.RedisHost, option.RedisPort)
 
 	session.InitManager(
-		session.SetStore(sessionstore),
+		session.SetStore(redis.NewRedisStore(&redis.Options{
+			Addr: redisLink,
+			DB:   option.RedisDB,
+		})),
 	)
 
 	if option.SyncDB {

@@ -12,7 +12,7 @@ APP_VERSION=0.0.2
 BUILD_VERSION=$(APP_VERSION).$(GIT_REVISION)
 GO_VERSION=$(shell go version)
 release:	
-	cd cmd &&CGO_ENABLED=0 go build -a -v \
+	cd cmd &&CGO_ENABLED=0 go build -v \
 	-ldflags "-extldflags '-static' -s -X 'main.AppName=${APP_NAME}' \
 				-X 'main.AppVersion=${APP_VERSION}' \
 				-X 'main.BuildVersion=${BUILD_VERSION}' \

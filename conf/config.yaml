@@ -8,5 +8,5 @@
   publickeypath: "../certs/rsa_pub.pem"
   httpscheme: "http"
   RedisHost: "localhost"
-  RedisPort: 30248
+  RedisPort: 6379
   RedisDB: 0
