@@ -7,9 +7,10 @@ RUN export GO111MODULE="on"
 RUN export GOPROXY=https://goproxy.io,direct
 ENV CA_PORT=80
 WORKDIR /app
+RUN go get github.com/gin-gonic/gin/binding@v1.9.1
 RUN go mod vendor
 RUN make APP_VERSION=${APP_VERSION}
-RUN go get github.com/gin-gonic/gin/binding@v1.9.1
+
 #RUN go mod vendor
 #RUN go build -mod=vendor -o easyca -a -ldflags "-extldflags '-static' -s -X 'main.AppName=${APP_NAME}' \
 # 				-X 'conf.AppVersion=${APP_VERSION}' \ 
