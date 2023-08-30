@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 	option := initConfig(*confPath)
-	option.SyncDB = syncDb
+	option.SyncDB = *syncDb
 
 	//配置Log
 	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
@@ -106,7 +106,7 @@ func main() {
 	manager.Kid = kid
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
-	models.Sync2Db(db)
+	
 	clientStore := idxstore.NewClientStore(db)
 	//clientStore.Cache = rdb
 	userStore := idxstore.NewDbUserStore(db)
