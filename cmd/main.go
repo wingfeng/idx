@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 	option := initConfig(*confPath)
-	option.SyncDB = *syncDb
+	option.SyncDB = syncDb
 
 	//配置Log
 	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
