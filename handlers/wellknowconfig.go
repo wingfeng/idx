@@ -16,6 +16,8 @@ func (ctrl *WellknownController) Get(ctx *gin.Context) {
 	r := ctx.Request
 
 	ctx.Header("Content-Type", "application/json")
+	ctx.Header("Access-Control-Allow-Origin","*")
+	ctx.Header("Access-Control-Request-Method","GET")
 	config := &core.OpenIDConfig{}
 
 	config.Issuer = fmt.Sprintf("%s://%s", ctrl.Scheme, r.Host)
