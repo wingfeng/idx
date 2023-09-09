@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 
 	log "github.com/cihub/seelog"
 	"github.com/gin-gonic/gin"
@@ -23,13 +24,13 @@ func Consent(ctx *gin.Context) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	var form map[string]interface{}
+	var form url.Values
 	if v, ok := store.Get("ReturnUri"); ok {
 		// mapVal := v.(map[string]interface{})
 		// for m, val := range mapVal {
 		// 	form[m] = val.(string)
 		// }
-		form = v.(map[string]interface{})
+		form = v.(url.Values)
 	}
 	if v, ok := store.Get("state"); ok {
 		//r.Form.Set("state", v.(string))

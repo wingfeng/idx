@@ -18,16 +18,16 @@ func Authorize(ctx *gin.Context) {
 		return
 	}
 
-	var form map[string]interface{}
+	var form url.Values
 
 	if v, ok := store.Get("ReturnUri"); ok {
 		if r.Form == nil {
 			r.Form = make(url.Values)
 		}
-		form = v.(map[string]interface{})
+		form = v.(url.Values)
 		for m, val := range form {
-			for _, vi := range val.([]interface{}) {
-				r.Form.Set(m, vi.(string))
+			for _, vi := range val {
+				r.Form.Set(m, vi)
 			}
 
 		}

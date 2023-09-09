@@ -106,7 +106,7 @@ func main() {
 	manager.Kid = kid
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
-	
+
 	clientStore := idxstore.NewClientStore(db)
 	//clientStore.Cache = rdb
 	userStore := idxstore.NewDbUserStore(db)
@@ -149,6 +149,7 @@ func main() {
 		UserStore: userStore,
 	}
 	router.GET("/connect/userinfo", userCtrl.UserInfo)
+	//router.OPTIONS("/connect/userinfo", userCtrl.UserInfo)
 	router.POST("/connect/userinfo", userCtrl.UserInfo)
 	router.GET("/consent", handlers.Consent)
 

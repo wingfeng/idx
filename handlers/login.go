@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-session/session"
@@ -61,8 +62,9 @@ func (ctrl *LoginController) LoginPost(ctx *gin.Context) {
 		requireConsent := false
 		if v, ok := store.Get("ReturnUri"); ok {
 
-			form := v.(map[string]interface{})
-			clientID := form["client_id"].([]interface{})[0].(string)
+			form := v.(url.Values)
+
+			clientID := form.Get("client_id")
 			requireConsent = needConsent(clientID, user.ID)
 		}
 		if requireConsent {
