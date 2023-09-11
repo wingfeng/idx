@@ -142,7 +142,12 @@ func main() {
 	loginCtrl := &handlers.LoginController{
 		UserStore: *userStore,
 	}
-
+	router.GET("/index.html",func(c *gin.Context) {
+       
+        c.HTML(http.StatusOK, "index.html", gin.H{
+            "title": "IDX Index",
+          })
+        })
 	router.GET("/login", loginCtrl.LoginGet)
 	router.POST("/login", loginCtrl.LoginPost)
 	userCtrl := &handlers.UserInfoController{
