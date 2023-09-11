@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
+  	"net/http"
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
