@@ -25,7 +25,8 @@ func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
 	token, err := Srv.ValidationBearerToken(r)
 	if err != nil {
 		log.Error("Validate Token error %s", err)
-		http.Error(ctx.Writer, err.Error(), http.StatusInternalServerError)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+
 		return
 	}
 

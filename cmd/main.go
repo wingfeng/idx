@@ -156,12 +156,13 @@ func main() {
 	}
 	router.GET("/connect/userinfo", userCtrl.UserInfo)
 	router.OPTIONS("/connect/userinfo", func(ctx *gin.Context) {
+		ctx.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Request-Method,Authorization,Content-Type,Access-Token")
 		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.Header("Access-Control-Request-Method", "GET,POST")
 		ctx.Header("Content-Type", "application/json")
 		ctx.AbortWithStatus(http.StatusNoContent)
 	})
-	router.POST("/connect/userinfo", userCtrl.UserInfo)
+	//router.POST("/connect/userinfo", userCtrl.UserInfo)
 	router.GET("/consent", handlers.Consent)
 
 	router.GET("/connect/authorize", handlers.Authorize)
