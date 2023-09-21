@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
-  	"net/http"
+
 	log "github.com/cihub/seelog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -142,19 +143,24 @@ func main() {
 	loginCtrl := &handlers.LoginController{
 		UserStore: *userStore,
 	}
-	router.GET("/index.html",func(c *gin.Context) {
-       
-        c.HTML(http.StatusOK, "index.html", gin.H{
-            "title": "IDX Index",
-          })
-        })
+	router.GET("/index.html", func(c *gin.Context) {
+
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "IDX Index",
+		})
+	})
 	router.GET("/login", loginCtrl.LoginGet)
 	router.POST("/login", loginCtrl.LoginPost)
 	userCtrl := &handlers.UserInfoController{
 		UserStore: userStore,
 	}
 	router.GET("/connect/userinfo", userCtrl.UserInfo)
-	//router.OPTIONS("/connect/userinfo", userCtrl.UserInfo)
+	router.OPTIONS("/connect/userinfo", func(ctx *gin.Context) {
+		ctx.Header("Access-Control-Allow-Origin", "*")
+		ctx.Header("Access-Control-Request-Method", "GET,POST")
+		ctx.Header("Content-Type", "application/json")
+		ctx.AbortWithStatus(http.StatusNoContent)
+	})
 	router.POST("/connect/userinfo", userCtrl.UserInfo)
 	router.GET("/consent", handlers.Consent)
 

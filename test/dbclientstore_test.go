@@ -66,7 +66,7 @@ var db *gorm.DB
 func initTest() {
 	//初始化DB
 	//db = utils.GetDB("mysql", "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true")
-	db = utils.GetDB("pgx", "host=localhost user=postgres password=pass@word1 dbname=idx port=5432 sslmode=disable TimeZone=Asia/Shanghai")
+	db = utils.GetDB("pgx", "host=localhost user=root password=pass@word1 dbname=idx port=5432 sslmode=disable TimeZone=Asia/Shanghai")
 	//
 	models.Sync2Db(db)
 }

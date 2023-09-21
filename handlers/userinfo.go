@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -16,14 +15,17 @@ type UserInfoController struct {
 type emptyStruct struct{}
 
 func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
-	w := ctx.Writer
-	r := ctx.Request
-	//w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	ctx.Header("Access-Control-Allow-Origin", "*")
+	ctx.Header("Access-Control-Request-Method", "GET,POST")
 	ctx.Header("Content-Type", "application/json")
+
+	r := ctx.Request
 
 	token, err := Srv.ValidationBearerToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Error("Validate Token error %s", err)
+		http.Error(ctx.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -53,7 +55,8 @@ func (ctrl *UserInfoController) UserInfo(ctx *gin.Context) {
 		if err != nil {
 			log.Errorf("获取用户错误,Error:%s", err.Error())
 		}
-		json.NewEncoder(w).Encode(result)
+		ctx.JSON(200, result)
+		//json.NewEncoder(w).Encode(result)
 	} else {
 		log.Errorf("解析Token错误,Validate:%b,Error:%s", err.Error())
 	}
