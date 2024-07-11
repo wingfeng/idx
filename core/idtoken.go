@@ -3,17 +3,17 @@ package core
 import (
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
-// {
-// 	"iss": "http://server.example.com",
-// 	"sub": "248289761001",
-// 	"aud": "s6BhdRkqt3",
-// 	"nonce": "n-0S6_WzA2Mj",
-// 	"exp": 1311281970,
-// 	"iat": 1311280970
-//   }
+//	{
+//		"iss": "http://server.example.com",
+//		"sub": "248289761001",
+//		"aud": "s6BhdRkqt3",
+//		"nonce": "n-0S6_WzA2Mj",
+//		"exp": 1311281970,
+//		"iat": 1311280970
+//	  }
 type IDToken struct {
 	Issuer           string `json:"iss,omitempty"`
 	Sub              string `json:"sub,omitempty"`

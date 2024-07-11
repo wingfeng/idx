@@ -7,9 +7,9 @@ import (
 	"os"
 
 	log "github.com/cihub/seelog"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-session/redis/v3"
+	"github.com/golang-jwt/jwt"
 
 	"github.com/go-session/session/v3"
 	"github.com/spf13/viper"

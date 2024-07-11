@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	log "github.com/cihub/seelog"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/wingfeng/idx/oauth2/server"
 	"github.com/wingfeng/idx/store"
 )

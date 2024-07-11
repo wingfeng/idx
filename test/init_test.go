@@ -3,10 +3,10 @@ package test
 import (
 	"io/ioutil"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	gormstore "github.com/go-session/gorm"
-	"github.com/go-session/session"
+	"github.com/go-session/redis/v3"
+	"github.com/go-session/session/v3"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/gommon/log"
 	"github.com/wingfeng/idx/core"
 	"github.com/wingfeng/idx/handlers"
@@ -36,10 +36,11 @@ func init_router() *gin.Engine {
 	// 		),
 	// 	),
 	// )
-	sessionstore := gormstore.MustStore(gormstore.Config{}, dbDriver, dbConnection)
-
 	session.InitManager(
-		session.SetStore(sessionstore),
+		session.SetStore(redis.NewRedisStore(&redis.Options{
+			Addr: "localhost",
+			DB:   0,
+		})),
 	)
 	manager := core.NewDefaultManager()
 	//	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)

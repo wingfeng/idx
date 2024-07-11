@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/oauth2/generates"
 	"github.com/wingfeng/idx/oauth2/models"
@@ -17,6 +17,7 @@ import (
 func TestJWTAccess(t *testing.T) {
 	Convey("Test JWT Access Generate", t, func() {
 		data := &oauth2.GenerateBasic{
+			Issuer: "http://localhost.idx",
 			Client: &models.Client{
 				ID:     "123456",
 				Secret: "123456",
@@ -26,6 +27,7 @@ func TestJWTAccess(t *testing.T) {
 				AccessCreateAt:  time.Now(),
 				AccessExpiresIn: time.Second * 120,
 			},
+			Nonce: "Nonce 123456",
 		}
 
 		gen := generates.NewJWTAccessGenerate("", []byte("00000000"), jwt.SigningMethodHS512)
@@ -47,5 +49,7 @@ func TestJWTAccess(t *testing.T) {
 		So(token.Valid, ShouldBeTrue)
 		So(claims.Audience, ShouldEqual, "123456")
 		So(claims.Subject, ShouldEqual, "000000")
+		So(claims.Issuer, ShouldEqual, "http://localhost.idx")
+		So(claims.Nonce, ShouldEqual, "Nonce 123456")
 	})
 }

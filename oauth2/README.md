@@ -136,7 +136,7 @@ Simulation examples of authorization code model, please check [example](/example
 
 import (
 	github.com/wingfeng/idx/oauth2/generates"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 // ...

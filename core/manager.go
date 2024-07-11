@@ -7,7 +7,7 @@ import (
 	"time"
 
 	log "github.com/cihub/seelog"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/oauth2/errors"
@@ -68,7 +68,7 @@ func (m *Manager) GetClient(ctx context.Context, clientID string) (cli oauth2.Cl
 	return
 }
 
-//GenerateAuthToken generate the authorization token(code)
+// GenerateAuthToken generate the authorization token(code)
 func (m *Manager) GenerateAuthToken(ctx context.Context, rt oauth2.ResponseType, tgr *oauth2.TokenGenerateRequest) (authToken oauth2.TokenInfo, err error) {
 	log.Debugf("GenerateAuthToken(%#v, %#v)", rt, tgr)
 	cli, err := m.clientStore.GetByID(ctx, tgr.ClientID)
@@ -228,7 +228,7 @@ func (m *Manager) validateCodeChallenge(ti oauth2.TokenInfo, ver string) error {
 	return nil
 }
 
-//GenerateAccessToken generate the access token
+// GenerateAccessToken generate the access token
 func (m *Manager) GenerateAccessToken(ctx context.Context, gt oauth2.GrantType, tgr *oauth2.TokenGenerateRequest) (accessToken oauth2.TokenInfo, err error) {
 	cli, err := m.clientStore.GetByID(ctx, tgr.ClientID)
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/wingfeng/idx/oauth2"
 	"github.com/wingfeng/idx/oauth2/errors"
@@ -15,6 +15,7 @@ import (
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
 	jwt.StandardClaims
+	Nonce string `json:"nonce"`
 }
 
 // Valid claims verification
@@ -43,20 +44,16 @@ type JWTAccessGenerate struct {
 
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(ctx context.Context, data *oauth2.GenerateBasic, isGenRefresh bool) (string, string, error) {
-	// claims := &JWTAccessClaims{
-	// 	StandardClaims: jwt.StandardClaims{
-	// 		Issuer:    data.Issuer,
-	// 		Audience:  data.Client.GetID(),
-	// 		Subject:   data.UserID,
-	// 		ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
-	// 	},
-	// }
-	claims := jwt.MapClaims{}
-	claims["iss"] = data.Issuer
-	claims["aud"] = data.Client.GetID()
-	claims["sub"] = data.UserID
-	claims["exp"] = data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix()
-	claims["nonce"] = data.Nonce
+	claims := &JWTAccessClaims{
+		StandardClaims: jwt.StandardClaims{
+			Issuer:    data.Issuer,
+			Audience:  data.Client.GetID(),
+			Subject:   data.UserID,
+			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),
+		},
+	}
+
+	claims.Nonce = data.Nonce
 
 	token := jwt.NewWithClaims(a.SignedMethod, claims)
 	if a.SignedKeyID != "" {

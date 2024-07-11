@@ -6,7 +6,7 @@ go 1.20
 
 require (
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/golang-jwt/jwt v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.9.1
 	//oauth2 v4.2.0
 	github.com/go-session/gorm v0.0.0-20190223144354-7d5f87dcd6c3
@@ -44,6 +44,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
