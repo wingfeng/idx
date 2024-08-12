@@ -3,17 +3,16 @@ package models
 import (
 	"strings"
 
-	"github.com/wingfeng/idx/utils"
 	"gorm.io/gorm"
 )
 
 // Role [...]
 type Role struct {
-	ID             string `json:"id" gorm:"primary_key;column:id;type:varchar(255);not null"`
-	Name           string `gorm:"column:name;type:varchar(256)"`
-	NormalizedName string `gorm:"unique;column:normalizedname;type:varchar(256)"`
-
-	utils.Record `gorm:"embedded"`
+	Id             string       `json:"id" gorm:"primary_key;type:varchar(255);not null"`
+	Name           string       `gorm:"type:varchar(256)"`
+	NormalizedName string       `gorm:"unique;type:varchar(256)"`
+	Claims         []RoleClaims `gorm:"foreignkey:RoleId"`
+	Record         `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -23,11 +22,11 @@ type Role struct {
 
 // SetID 获取当前记录的ID
 func (r *Role) SetID(v interface{}) {
-	r.ID = v.(string)
+	r.Id = v.(string)
 }
 
 func (r *Role) GetID() interface{} {
-	return r.ID
+	return r.Id
 }
 func (r *Role) BeforeCreate(tx *gorm.DB) error {
 

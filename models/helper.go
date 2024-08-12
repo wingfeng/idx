@@ -1,7 +1,8 @@
 package models
 
 import (
-	"github.com/labstack/gommon/log"
+	"log/slog"
+
 	"gorm.io/gorm"
 )
 
@@ -10,7 +11,7 @@ func Sync2Db(x *gorm.DB) {
 	x.DisableForeignKeyConstraintWhenMigrating = true
 
 	// 同步结构体与数据表
-	err := x.AutoMigrate(
+	err := x.Debug().AutoMigrate(
 
 		new(APIClaims),
 		new(APIProperties),
@@ -19,24 +20,24 @@ func Sync2Db(x *gorm.DB) {
 		new(APIScopes),
 		new(APISecrets))
 	if err != nil {
-		log.Errorf("同步数据结构错误,Error:%v", err)
+		slog.Error("同步数据结构错误,Error:", "error", err)
 	}
-	err = x.AutoMigrate(
+	err = x.Debug().AutoMigrate(
 
 		new(ClientClaims),
 		new(ClientCorsOrigins),
 
-		new(ClientIDPRestrictions),
+		new(ClientIdPRestrictions),
 
 		new(ClientProperties),
 		new(ClientPostLogoutRedirectURIs),
 		new(Client),
 
 		new(ClientSecrets),
-		new(DeviceCodes),
-		new(IDentityClaims),
-		new(IDentityProperties),
-		new(IDentityResources),
+
+		new(IdentityClaims),
+		new(IdentityProperties),
+		new(IdentityResources),
 		new(OrganizationUnit),
 		new(PersistedGrants),
 		new(RoleClaims),
@@ -48,6 +49,11 @@ func Sync2Db(x *gorm.DB) {
 		new(UserTokens),
 	)
 	if err != nil {
-		log.Errorf("同步数据结构错误,Error:%v", err)
+		slog.Error("同步数据结构错误,Error", "error", err)
 	}
+	err = x.AutoMigrate(new(Authorization_fake))
+	if err != nil {
+		slog.Error("同步数据结构错误 Authorization,Error", "error", err)
+	}
+
 }

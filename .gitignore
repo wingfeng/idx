@@ -2,4 +2,5 @@ cmd/cmd
 cmd/idx
 cmd/__debug_bin
 cmd/cmd.exe
+cmd/idx.exe
 vendor/

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Auth</title>
+    <title>{{.title}}</title>
   
 <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
@@ -18,22 +18,28 @@
   <body>
     <div class="container">
       <div class="jumbotron">
-        <form action="/connect/authorize" method="POST">
-          <h1>授权</h1>
-          <p>应用{{.client_id}}需要你授权访问以下资源</p>
+        <form action="/oauth2/consent" method="POST">
+          <h1>Consent</h1>
+          <p>Application <b>{{.client_name}}({{.client_id}})</b> need your consent to access resources listed below</p>
         
           <hr/>
-          <p>Scope:{{.scope}} </p>
+          <p>Scopes: </p>
+          {{range .scope}}
+       <li><label>   <input type="checkbox" name="scope" value="{{.}}" checked="checked"/> {{.}} </label></li>
+          {{end}}
+          <input type="hidden" name="client_id" value="{{.client_id}}"/>
+          <input type="hidden" name="uri" value="{{.uri}}"/>
             <button
               type="submit"
               class="btn btn-primary btn-lg"
               style="width:200px;"
             >
-              确认
+              confirm
             </button>
           </p>
         </form>
       </div>
     </div>
+    {{template "footer.html" .}}
   </body>
 </html>

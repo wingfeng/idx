@@ -3,19 +3,18 @@ package models
 import (
 	"fmt"
 
-	"github.com/wingfeng/idx/utils"
 	"gopkg.in/guregu/null.v4"
 )
 
 type OrganizationUnit struct {
-	ID           string             `json:"id" gorm:"primary_key;column:id;type:varchar(36);not null"`
-	Name         string             `json:"name" gorm:"column:name; type:varchar(255)"`
-	DisplayName  string             `json:"text" gorm:"column:displayname; type:varchar(255)"`
-	Parent       null.String        `json:"parent" gorm:"type:varchar(36)"`
-	SortOrder    int                `json:"sortorder"`
-	Path         string             `json:"path" gorm:"type:varchar(2048)"`
-	Children     []OrganizationUnit `json:"nodes" gorm:"-"`
-	utils.Record `gorm:"embedded"`
+	Id          string             `json:"id" gorm:"primary_key;type:varchar(36);not null"`
+	Name        string             `json:"name" gorm:" type:varchar(255)"`
+	DisplayName string             `json:"text" gorm:" type:varchar(255)"`
+	Parent      null.String        `json:"parent" gorm:"type:varchar(36)"`
+	SortOrder   int                `json:"sortorder"`
+	Path        string             `json:"path" gorm:"type:varchar(2048)"`
+	Children    []OrganizationUnit `json:"nodes" gorm:"foreignkey:Parent;association_foreignkey:Id"`
+	Record      `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -24,10 +23,10 @@ type OrganizationUnit struct {
 //		return "OrganizationUnit"
 //	}
 func (m *OrganizationUnit) GetID() interface{} {
-	return m.ID
+	return m.Id
 }
 func (m *OrganizationUnit) SetID(id interface{}) {
-	m.ID = fmt.Sprintf("%v", id)
+	m.Id = fmt.Sprintf("%v", id)
 }
 func (m *OrganizationUnit) ParentID() interface{} {
 	return m.Parent

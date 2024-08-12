@@ -1,27 +1,31 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
-	"net/http"
+	"log/slog"
 	"os"
+	"strings"
 
-	log "github.com/cihub/seelog"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-	"github.com/go-session/redis/v3"
+
 	"github.com/golang-jwt/jwt"
+	"github.com/lunny/log"
 
-	"github.com/go-session/session/v3"
 	"github.com/spf13/viper"
-	"github.com/wingfeng/idx/core"
-	"github.com/wingfeng/idx/handlers"
+	oauth2 "github.com/wingfeng/idx-oauth2"
+	"github.com/wingfeng/idx-oauth2/conf"
+	"github.com/wingfeng/idx-oauth2/endpoint"
+	"github.com/wingfeng/idx-oauth2/service"
+	"github.com/wingfeng/idx-oauth2/service/impl"
 	"github.com/wingfeng/idx/models"
-
-	"github.com/wingfeng/idx/oauth2/errors"
-	"github.com/wingfeng/idx/oauth2/generates"
-	"github.com/wingfeng/idx/oauth2/server"
-	"github.com/wingfeng/idx/oauth2/store"
-	idxstore "github.com/wingfeng/idx/store"
+	"github.com/wingfeng/idx/repo"
 	"github.com/wingfeng/idx/utils"
 )
 
@@ -41,6 +45,7 @@ func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
 	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")
 	syncDb := flag.Bool("syncdb", false, "同步数据结构到数据库.")
+
 	flag.Parse()
 	if *showVersion {
 		Version()
@@ -49,154 +54,115 @@ func main() {
 	option := initConfig(*confPath)
 	option.SyncDB = *syncDb
 
-	//配置Log
-	consoleWriter, _ := log.NewConsoleWriter() //创建一个新的控制台写入器
-	logLevel, lex := log.LogLevelFromString(option.LogLevel)
-	if !lex {
-		logLevel = log.DebugLvl
-	}
-	logger, _ := log.LoggerFromWriterWithMinLevel(consoleWriter, logLevel)
-	log.ReplaceLogger(logger)
-	defer log.Flush()
 	redisLink := fmt.Sprintf("%s:%d", option.RedisHost, option.RedisPort)
-
-	session.InitManager(
-		session.SetStore(redis.NewRedisStore(&redis.Options{
-			Addr: redisLink,
-			DB:   option.RedisDB,
-		})),
-	)
 
 	if option.SyncDB {
 		//初始化DB
 		dbEngine := utils.GetDB(option.Driver, option.Connection)
 		models.Sync2Db(dbEngine)
-		fmt.Println("同步数据库结构完成")
+		fmt.Println("同步数据库结构完成,程序退出")
 		return
 	}
-	manager := core.NewDefaultManager()
+	dbDriver := *flag.String("db", "pgx", "DB Driver:mysql,pgx")
+	dbConnection := *flag.String("dbConnection", "host=localhost port=5432 user=root password=pass@word1 dbname=idx sslmode=disable TimeZone=Asia/Shanghai", "DB Connection")
+	port := *flag.Int("port", 9097, "Server Port")
+	flag.Parse()
 
-	manager.HTTPScheme = option.HTTPScheme
-	//	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
-	tStore, _ := store.NewMemoryTokenStore()
-	// token store
-	manager.SetTokenStore(tStore)
-	privateKeyBytes, err := os.ReadFile(option.PrivateKeyPath)
-	if err != nil {
-		log.Errorf("读取私钥错误!,Err:%s", err.Error())
+	//配置Log
+	logLevel := slog.LevelWarn
+	switch strings.ToLower(option.LogLevel) {
+	case "debug":
+		logLevel = slog.LevelDebug
+
+	case "info":
+		logLevel = slog.LevelInfo
+
+	case "warn":
+		logLevel = slog.LevelWarn
+
 	}
+	slog.Info("Set log level", "Level", logLevel)
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+	slog.SetDefault(slog.New(handler))
 
-	publicKeyBytes, err := os.ReadFile(option.PublicKeyPath)
-	if err != nil {
-		log.Errorf("读取公钥错误!,Err:%s", err.Error())
-	}
+	config := conf.DefaultConfig()
 
-	jwks := &core.JWKS{}
-	jwk := core.NewRSAJWTKeyWithPEM(publicKeyBytes)
-	kid := "d2a820a8916647f7ac72627ec0ae4f94"
-
-	jwtAccessGenerate := generates.NewJWTAccessGenerate(kid, privateKeyBytes, jwt.SigningMethodRS256)
-	jwk.Alg = jwtAccessGenerate.SignedMethod.Alg()
-	jwk.Kid = jwtAccessGenerate.SignedKeyID
-	jwks.Keys = append(jwks.Keys, jwk)
-	handlers.PublicKey = jwk.PublicKey
-	handlers.Jwks = jwks
-	// generate jwt access token
-	manager.MapAccessGenerate(jwtAccessGenerate)
-	manager.PrivateKeyBytes = privateKeyBytes
-	manager.Kid = kid
 	//初始化DB
-	db := utils.GetDB(option.Driver, option.Connection)
+	db := utils.GetDB(dbDriver, dbConnection)
 
-	clientStore := idxstore.NewClientStore(db)
-	//clientStore.Cache = rdb
-	userStore := idxstore.NewDbUserStore(db)
-
-	handlers.ClientStore = clientStore
-
-	manager.SetClientStore(clientStore)
-
-	srv := server.NewServer(server.NewConfig(), manager)
-
-	openidExt := core.NewOpenIDExtend()
-	openidExt.PrivateKeyByets = privateKeyBytes
-	openidExt.ClientStore = clientStore
-	openidExt.UserStore = userStore
-	manager.UserStore = userStore
-
-	srv.SetPasswordAuthorizationHandler(openidExt.PasswordAuthorizationHandler)
-
-	srv.Config.AllowedResponseTypes = append(srv.Config.AllowedResponseTypes, "id_token")
-	srv.SetUserAuthorizationHandler(openidExt.UserAuthorizeHandler)
-
-	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
-		log.Infof("OAuth Server Internal Error:", err.Error())
-		return
-	})
-
-	srv.SetResponseErrorHandler(func(re *errors.Response) {
-		log.Infof("Response Error:", re.Error.Error())
-	})
-
-	handlers.Srv = srv
 	router := gin.Default()
-	loginCtrl := &handlers.LoginController{
-		UserStore: *userStore,
-	}
-	router.GET("/index.html", func(c *gin.Context) {
+	store, _ := redis.NewStore(10, "tcp", redisLink, "", []byte("secret"))
 
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "IDX Index",
-		})
-	})
-	router.GET("/login", loginCtrl.LoginGet)
-	router.POST("/login", loginCtrl.LoginPost)
-	userCtrl := &handlers.UserInfoController{
-		UserStore: userStore,
-	}
-	router.GET("/connect/userinfo", userCtrl.UserInfo)
-	router.OPTIONS("/connect/userinfo", func(ctx *gin.Context) {
-		ctx.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Request-Method,Authorization,Content-Type,Access-Token")
-		ctx.Header("Access-Control-Allow-Origin", "*")
-		ctx.Header("Access-Control-Request-Method", "GET,POST")
-		ctx.Header("Content-Type", "application/json")
-		ctx.AbortWithStatus(http.StatusNoContent)
-	})
-	//router.POST("/connect/userinfo", userCtrl.UserInfo)
-	router.GET("/consent", handlers.Consent)
+	router.Use(sessions.Sessions("mysession", store))
 
-	router.GET("/connect/authorize", handlers.Authorize)
-	router.POST("/connect/authorize", handlers.Authorize)
+	router.Use(endpoint.AuthMiddleware)
+	group := router.Group(config.EndpointGroup)
 
-	router.POST("/connect/token", handlers.TokenController)
+	authRepo := repo.NewAuthorizationRepository(db)
+	userRepo := repo.NewUserRepository(db)
+	consentRepo := repo.NewConsentRepository(db)
+	clientRepo := repo.NewClientRepository(db)
+	tokenService, jwks := buildTokenService(config, userRepo)
+	tenant := oauth2.NewTenant(config, userRepo,
+		clientRepo,
+		authRepo,
+		consentRepo,
+		tokenService, jwks)
+	tenant.InitOAuth2Router(group, router)
 
-	router.GET("/test", handlers.Test)
-	wellknowCtrl := &handlers.WellknownController{
-		Scheme: option.HTTPScheme,
-	}
-	router.GET("/.well-known/openid-configuration", wellknowCtrl.Get)
-	router.GET("/.well-known/openid-configuration/jwks", handlers.JWKSHandler)
-	router.POST("/connect/endsession", handlers.LogoutHandler)
-	router.POST("/connect/revocation", handlers.RevocateHandler)
-	router.LoadHTMLGlob("../static/*")
-	log.Infof("Server is running at %d port.", option.Port)
-	// handler := cors.New(cors.Options{
-	// 	AllowedOrigins:   []string{"*"},
-	// 	AllowCredentials: true,
-	// 	AllowedHeaders:   []string{"*"},
-	// 	// Enable Debugging for testing, consider disabling in production
-	// 	Debug: false,
-	// }).Handler(router)
-	//	handler := cors.Default().Handler(mux)
-	address := fmt.Sprintf("%s:%d", "", option.Port)
+	router.GET("/", endpoint.Index)
+	router.GET("/index.html", endpoint.Index)
+	router.GET("/index", endpoint.Index)
+
+	router.Static("/img", "../static/img")
+	router.LoadHTMLGlob("../static/*.html")
+
+	slog.Info("Server is running at", "port", port)
+
+	address := fmt.Sprintf("%s:%d", "", port)
 	//l := logger{}
 	//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
-	router.Run(address)
+	err := router.Run(address)
 	//err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
 	if err != nil {
-		log.Error("Server Error:%s", err.Error())
+		slog.Error("Server Error", "error", err)
 	}
 
+}
+func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (service.TokenService, *conf.JWKS) {
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	publicKey := &privateKey.PublicKey
+	publicKeyBytes, _ := x509.MarshalPKIXPublicKey(publicKey)
+	// Convert the RSA public key to PEM format.
+	pemPublicKey := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	}
+	publicKeyPEM := pem.EncodeToMemory(pemPublicKey)
+
+	key := conf.NewRSAJWTKeyWithPEM(publicKeyPEM)
+	key.Use = "sig"
+	key.Kid = "d2a820a8916647f7ac72627ec0ae4f94"
+	key.Alg = "RS256"
+	jwks := &conf.JWKS{Keys: []interface{}{key}}
+
+	tokenService := impl.NewJwtTokenService(jwt.SigningMethodRS256, privateKey, func(userName string, scope string) map[string]interface{} {
+		u, _ := userRepo.GetUserByName(userName)
+		user := u.(*models.User)
+		result := map[string]interface{}{}
+		//
+		if strings.Contains(scope, "mobile") {
+			result["mobile"] = user.PhoneNumber
+		}
+		if strings.Contains(scope, "email") {
+			result["email"] = user.GetEmail()
+		}
+		return result
+	})
+
+	tokenService.TokenLifeTime = config.TokenLifeTime
+
+	return tokenService, jwks
 }
 func initConfig(confPath string) *Option {
 

@@ -1,17 +1,15 @@
 package models
 
-import "github.com/wingfeng/idx/utils"
+// ClientIdPRestrictions [...]
+type ClientIdPRestrictions struct {
+	Id       int    `gorm:"primary_key;auto_Increment;not null"`
+	Provider string `gorm:"type:varchar(200);not null"`
+	ClientId int    `gorm:"index:IX_ClientIdPRestrictions_ClientId;type:int;not null"`
 
-// ClientIDPRestrictions [...]
-type ClientIDPRestrictions struct {
-	ID           int    `gorm:"primary_key;auto_Increment;column:id;not null"`
-	Provider     string `gorm:"column:provider;type:varchar(200);not null"`
-	ClientID     int    `gorm:"index:IX_ClientIdPRestrictions_ClientId;column:clientid;type:int;not null"`
-	Clients      Client `gorm:"foreignKey:clientid;references:id"`
-	utils.Record `gorm:"embedded"`
+	Record `gorm:"embedded"`
 }
 
 // TableName 数据表名称
-func (m *ClientIDPRestrictions) TableName() string {
+func (m *ClientIdPRestrictions) TableName() string {
 	return "client_idp_restrictions"
 }
