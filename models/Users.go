@@ -10,7 +10,7 @@ import (
 // User 用户信息
 type User struct {
 	Id                   string    `json:"id" gorm:"primary_key;type:varchar(255);not null"`
-	OUId                 string    `json:"ouid" gorm:"type:varchar(36)"`
+	OUId                 string    `json:"ouid" gorm:"column:ou_id;type:varchar(36)"`
 	OU                   string    `json:"ou" gorm:"type:varchar(256)"`
 	Account              string    `json:"account" gorm:"type:varchar(256)"`
 	DisplayName          string    `json:"displayname" gorm:"type:varchar(256)"`
