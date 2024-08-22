@@ -21,7 +21,6 @@ import (
 	"github.com/spf13/viper"
 	oauth2 "github.com/wingfeng/idx-oauth2"
 	"github.com/wingfeng/idx-oauth2/conf"
-	"github.com/wingfeng/idx-oauth2/endpoint"
 	"github.com/wingfeng/idx-oauth2/service"
 	"github.com/wingfeng/idx-oauth2/service/impl"
 	"github.com/wingfeng/idx/models"
@@ -93,11 +92,6 @@ func main() {
 	router := gin.Default()
 	store, _ := redis.NewStore(10, "tcp", redisLink, "", []byte("secret"))
 
-	router.Use(sessions.Sessions("mysession", store))
-
-	router.Use(endpoint.AuthMiddleware)
-	group := router.Group(config.EndpointGroup)
-
 	authRepo := repo.NewAuthorizationRepository(db)
 	userRepo := repo.NewUserRepository(db)
 	consentRepo := repo.NewConsentRepository(db)
@@ -108,14 +102,10 @@ func main() {
 		authRepo,
 		consentRepo,
 		tokenService, jwks)
-	tenant.InitOAuth2Router(group, router)
-
-	router.GET("/", endpoint.Index)
-	router.GET("/index.html", endpoint.Index)
-	router.GET("/index", endpoint.Index)
-
-	router.Static("/img", "../static/img")
 	router.LoadHTMLGlob("../static/*.html")
+	router.Static("/img", "../static/img")
+
+	tenant.InitOAuth2Router(router, sessions.Sessions("idx_session", store))
 
 	slog.Info("Server is running at", "port", port)
 

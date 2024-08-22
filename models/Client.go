@@ -47,6 +47,7 @@ type Client struct {
 	DeviceCodeLifetime                int                            `gorm:"type:int;not null"`
 	LogoutUris                        []ClientPostLogoutRedirectURIs `gorm:"foreignKey:ClientId"`
 	Secrets                           []ClientSecrets                `gorm:"foreignKey:ClientId"`
+	Origins                           []ClientCorsOrigins            `gorm:"foreignKey:ClientId"`
 	Record                            `gorm:"embedded"`
 }
 
@@ -97,4 +98,11 @@ func (c *Client) GetSecret() []string {
 }
 func (c *Client) GetRequirePKCE() bool {
 	return c.RequirePkce
+}
+func (c *Client) GetWebOrigins() []string {
+	result := []string{}
+	for _, v := range c.Origins {
+		result = append(result, v.Origin)
+	}
+	return result
 }

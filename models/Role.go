@@ -12,6 +12,7 @@ type Role struct {
 	Name           string       `gorm:"type:varchar(256)"`
 	NormalizedName string       `gorm:"unique;type:varchar(256)"`
 	Claims         []RoleClaims `gorm:"foreignkey:RoleId"`
+	Users          []User       `gorm:"many2many:user_roles"`
 	Record         `gorm:"embedded"`
 }
 

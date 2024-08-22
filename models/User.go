@@ -29,6 +29,7 @@ type User struct {
 	AccessFailedCount    int       `json:"accessfailedcount" gorm:"type:int;not null"`
 
 	Record     `gorm:"embedded"`
+	Roles      []Role       `gorm:"many2many:user_roles"`
 	UserClaims []UserClaims `gorm:"foreignKey:UserId"`
 	Logins     []UserLogins `gorm:"foreignKey:UserId"`
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	constants "github.com/wingfeng/idx-oauth2/const"
 	"github.com/wingfeng/idx-oauth2/utils"
 	"github.com/wingfeng/idx/models"
 	idxutils "github.com/wingfeng/idx/utils"
@@ -13,14 +14,22 @@ import (
 
 var db *gorm.DB
 
+// initDB Initializes the database connection and synchronizes the database schema.
+//
+// No parameters.
+// No return values.
 func initDB() {
 	//初始化DB
-	//db = utils.GetDB("mysql", "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true")
+	//	db = idxutils.GetDB("mysql", "root:password1@tcp(localhost:3306)/idx?&parseTime=true")
 	db = idxutils.GetDB("pgx", "host=localhost user=root password=pass@word1 dbname=idx port=5432 sslmode=disable TimeZone=Asia/Shanghai")
 	//
 	models.Sync2Db(db)
 }
 
+// TestSeedData tests the seeding of initial data into the database.
+//
+// Parameter t is a pointer to testing.T, which is used to report test failures.
+// No return values.
 func TestSeedData(t *testing.T) {
 	//	node, err := snowflake.NewNode(1)
 	initDB()
@@ -74,20 +83,32 @@ func TestSeedData(t *testing.T) {
 	addRole(role)
 	addUserRole(user.Id, ou.Id, role.Id)
 	addClient("implicit_client", "implicit_secret", "implicit", t)
-	addClient("hybrid_client", "hybrid_secret", "authorization_code implicit device_code password client_credential", t)
+	addClient("hybrid_client", "hybrid_secret", "authorization_code implicit "+string(constants.DeviceCode)+" password client_credential", t)
 	addClient("code_client", "code_secret", "authorization_code", t)
 	addClient("password_client", "password_secret", "password", t)
 	addClient("local_test", "local_secret", "authorization_code", t)
+	addClient("client_credentials_client", "client_credentials_secret", "client_credentials", t)
+	addClient("device_code_client", "device_code_secret", string(constants.DeviceCode), t)
 
 }
 
+// addClient adds a new client to the database with the given client ID, secret, grant type, and testing context.
+//
+// Parameters:
+// - clientId: the ID of the client to be added (string)
+// - secret: the secret of the client to be added (string)
+// - grantType: the grant type of the client to be added (string)
+// - t: the testing context (testing.T)
+//
+// Return:
+// - None
 func addClient(clientId, secret, grantType string, t *testing.T) {
 	//requireSecret := len(secret) > 0
 	pwdHash, _ := utils.HashPassword(secret)
 	client := &models.Client{
 
-		ClientId: clientId,
-
+		ClientId:   clientId,
+		Enabled:    true,
 		ClientName: "Client",
 
 		GrantTypes: grantType,

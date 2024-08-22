@@ -22,7 +22,7 @@
 <body>
     <div class="container">
         <h1  class="card-title"><a href="/">IDx</a> Login</h1>
-        <form action="/login" method="POST">
+        <form action="/{{.tenant}}/login" method="POST">
             <div class="form-group">
                 <label for="username">UserName:</label>
                 <input type="text" class="form-control" name="username" required
@@ -34,7 +34,7 @@
             </div>
             <input type="hidden" name="redirect" value="{{.redirect}}"/>
             <button type="submit" class="btn btn-primary">Login</button>
-            <div class="text-danger">{{.error}}</div>
+            <label>{{.error}}</label>
         </form>
     </div>
 </body>
