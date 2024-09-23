@@ -14,8 +14,8 @@ type UserDto struct {
 	Email        string   `json:"email" `
 	PhoneNumber  string   `json:"phonenumber"`
 	PasswordHash string   `json:"-"`
-	Roles        []string `json:"roles"`
-	UserClaims   []string `json:"claims"`
+	Roles        []string `json:"roles" copier:"-"`
+	UserClaims   []string `json:"claims" copier:"-"`
 }
 
 func NewUserDto(user *models.User) *UserDto {

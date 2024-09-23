@@ -6,12 +6,12 @@ import (
 
 // Client [...]
 type Client struct {
-	Id                                int                            `gorm:"primary_key;auto_Increment;not null"`
+	Id                                int                            `json:"Id,omitempty" gorm:"primary_key;auto_Increment;not null"`
 	Enabled                           bool                           `gorm:"not null"`
 	ClientId                          string                         `gorm:"uniqueIndex;type:varchar(256);not null"`
 	GrantTypes                        string                         `gorm:"type:varchar(256)"`
 	Scopes                            string                         `gorm:"type:varchar(256)"`
-	RedirectUris                      string                         `gorm:"type:varchar(1024)"`
+	RedirectUris                      string                         `gorm:"type:varchar(4096)"`
 	ProtocolType                      string                         `gorm:"type:varchar(200);not null"`
 	RequireSecret                     bool                           `gorm:"not null"`
 	ClientName                        string                         `gorm:"type:varchar(200)"`
@@ -43,11 +43,11 @@ type Client struct {
 	ClientClaimsPrefix                string                         `gorm:"type:varchar(200)"`
 	PairWiseSubjectSalt               string                         `gorm:"type:varchar(200)"`
 	UserSsoLifetime                   int                            `gorm:"type:int"`
-	UserCodeType                      string                         `gorm:"type:varchar(100)"`
-	DeviceCodeLifetime                int                            `gorm:"type:int;not null"`
 	LogoutUris                        []ClientPostLogoutRedirectURIs `gorm:"foreignKey:ClientId"`
 	Secrets                           []ClientSecrets                `gorm:"foreignKey:ClientId"`
 	Origins                           []ClientCorsOrigins            `gorm:"foreignKey:ClientId"`
+	Claims                            []ClientClaims                 `gorm:"foreignKey:ClientId"`
+	Properties                        []ClientProperties             `gorm:"foreignKey:ClientId"`
 	Record                            `gorm:"embedded"`
 }
 
@@ -66,6 +66,9 @@ func (c *Client) GetClientName() string {
 }
 func (c *Client) GetGrantTypes() []string {
 	return strings.Split(c.GrantTypes, " ")
+}
+func (c *Client) SetGrantTypes(val []string) {
+	c.GrantTypes = strings.Join(val, " ")
 }
 func (c *Client) GetRequireConsent() bool {
 	return c.RequireConsent

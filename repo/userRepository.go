@@ -28,6 +28,7 @@ func (ur *DBUserRepository) GetUser(userId string) (model.IUser, error) {
 func (ur *DBUserRepository) GetUserByName(username string) (model.IUser, error) {
 	var user models.User
 	//ur.DB.SetupJoinTable(&models.User{}, "Roles", &models.UserRoles{})
-	tx := ur.DB.Where("normalized_account = ?", strings.ToUpper(username)).First(&user)
-	return &user, tx.Error
+	tx := ur.DB.Where("normalized_account = ?", strings.ToUpper(username)).Preload("Roles").First(&user)
+	dto := dto.NewUserDto(&user)
+	return dto, tx.Error
 }

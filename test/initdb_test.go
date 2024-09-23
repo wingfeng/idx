@@ -82,13 +82,13 @@ func TestSeedData(t *testing.T) {
 	role.Name = "科室主任"
 	addRole(role)
 	addUserRole(user.Id, ou.Id, role.Id)
-	addClient("implicit_client", "implicit_secret", "implicit", t)
-	addClient("hybrid_client", "hybrid_secret", "authorization_code implicit "+string(constants.DeviceCode)+" password client_credential", t)
-	addClient("code_client", "code_secret", "authorization_code", t)
-	addClient("password_client", "password_secret", "password", t)
-	addClient("local_test", "local_secret", "authorization_code", t)
-	addClient("client_credentials_client", "client_credentials_secret", "client_credentials", t)
-	addClient("device_code_client", "device_code_secret", string(constants.DeviceCode), t)
+	addClient("implicit_client", "secret", "implicit", t)
+	addClient("hybrid_client", "secret", "authorization_code implicit "+string(constants.DeviceCode)+" password client_credential", t)
+	addClient("code_client", "secret", "authorization_code", t)
+	addClient("password_client", "secret", "password", t)
+	addClient("local_test", "secret", "authorization_code", t)
+	addClient("client_credentials_client", "secret", "client_credentials", t)
+	addClient("device_code_client", "secret", string(constants.DeviceCode), t)
 
 }
 
@@ -104,7 +104,7 @@ func TestSeedData(t *testing.T) {
 // - None
 func addClient(clientId, secret, grantType string, t *testing.T) {
 	//requireSecret := len(secret) > 0
-	pwdHash, _ := utils.HashPassword(secret)
+
 	client := &models.Client{
 
 		ClientId:   clientId,
@@ -120,7 +120,8 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 	}
 
 	var result *gorm.DB
-	if db.Table("clients").Where("client_id=?", clientId).First(&models.Client{}).RowsAffected > 0 {
+	var newClient models.Client
+	if db.Table("clients").Where("client_id=?", clientId).First(&newClient).RowsAffected > 0 {
 		result = db.Table("clients").Where("client_id=?", clientId).Updates(client)
 
 	} else {
@@ -130,9 +131,25 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 		t.Logf("insert client error: %v", result.Error)
 		panic(result.Error)
 	}
-	addClientScecret(pwdHash, client.Id)
+	addClientScecret(secret, newClient.Id)
+	addClientOrigin("*", newClient.Id)
+}
+func addClientOrigin(origin string, clientid int) {
+
+	db.Unscoped().Delete(&models.ClientCorsOrigins{}, "client_id = ?", clientid)
+
+	co := &models.ClientCorsOrigins{
+		ClientId: clientid,
+		Origin:   origin,
+	}
+
+	err := db.Save(co).Error
+	if err != nil {
+		panic(err)
+	}
 }
 func addClientScecret(secret string, clientid int) {
+	db.Unscoped().Delete(&models.ClientSecrets{}, "client_id = ?", clientid)
 	sc := &models.ClientSecrets{
 		Type:     "SHA256",
 		ClientId: clientid,

@@ -27,8 +27,6 @@ func Sync2Db(x *gorm.DB) {
 		new(ClientClaims),
 		new(ClientCorsOrigins),
 
-		new(ClientIdPRestrictions),
-
 		new(ClientProperties),
 		new(ClientPostLogoutRedirectURIs),
 		new(Client),

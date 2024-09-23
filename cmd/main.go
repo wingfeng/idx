@@ -24,6 +24,7 @@ import (
 	"github.com/wingfeng/idx-oauth2/service"
 	"github.com/wingfeng/idx-oauth2/service/impl"
 	"github.com/wingfeng/idx/models"
+	"github.com/wingfeng/idx/models/dto"
 	"github.com/wingfeng/idx/repo"
 	"github.com/wingfeng/idx/utils"
 )
@@ -44,6 +45,9 @@ func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
 	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")
 	syncDb := flag.Bool("syncdb", false, "同步数据结构到数据库.")
+	// dbDriver := *flag.String("db", "pgx", "DB Driver:mysql,pgx")
+	// dbConnection := *flag.String("dbConnection", "host=localhost port=5432 user=root password=pass@word1 dbname=idx sslmode=disable TimeZone=Asia/Shanghai", "DB Connection")
+	// port := flag.Int("port", 9097, "Server Port")
 
 	flag.Parse()
 	if *showVersion {
@@ -62,10 +66,6 @@ func main() {
 		fmt.Println("同步数据库结构完成,程序退出")
 		return
 	}
-	dbDriver := *flag.String("db", "pgx", "DB Driver:mysql,pgx")
-	dbConnection := *flag.String("dbConnection", "host=localhost port=5432 user=root password=pass@word1 dbname=idx sslmode=disable TimeZone=Asia/Shanghai", "DB Connection")
-	port := *flag.Int("port", 9097, "Server Port")
-	flag.Parse()
 
 	//配置Log
 	logLevel := slog.LevelWarn
@@ -87,11 +87,14 @@ func main() {
 	config := conf.DefaultConfig()
 
 	//初始化DB
-	db := utils.GetDB(dbDriver, dbConnection)
+	db := utils.GetDB(option.Driver, option.Connection)
 
 	router := gin.Default()
-	store, _ := redis.NewStore(10, "tcp", redisLink, "", []byte("secret"))
-
+	store, err := redis.NewStore(10, "tcp", redisLink, "", []byte("secret"))
+	if err != nil {
+		slog.Error("Redis NewStore Error", "error", err)
+		panic(err)
+	}
 	authRepo := repo.NewAuthorizationRepository(db)
 	userRepo := repo.NewUserRepository(db)
 	consentRepo := repo.NewConsentRepository(db)
@@ -107,12 +110,12 @@ func main() {
 
 	tenant.InitOAuth2Router(router, sessions.Sessions("idx_session", store))
 
-	slog.Info("Server is running at", "port", port)
+	slog.Info("Server is running at", "port", option.Port)
 
-	address := fmt.Sprintf("%s:%d", "", port)
+	address := fmt.Sprintf("%s:%d", "", option.Port)
 	//l := logger{}
 	//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
-	err := router.Run(address)
+	err = router.Run(address)
 	//err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
 	if err != nil {
 		slog.Error("Server Error", "error", err)
@@ -138,7 +141,7 @@ func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (se
 
 	tokenService := impl.NewJwtTokenService(jwt.SigningMethodRS256, privateKey, func(userName string, scope string) map[string]interface{} {
 		u, _ := userRepo.GetUserByName(userName)
-		user := u.(*models.User)
+		user := u.(*dto.UserDto)
 		result := map[string]interface{}{}
 		//
 		if strings.Contains(scope, "mobile") {
@@ -147,6 +150,7 @@ func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (se
 		if strings.Contains(scope, "email") {
 			result["email"] = user.GetEmail()
 		}
+		result["roles"] = user.Roles
 		return result
 	})
 

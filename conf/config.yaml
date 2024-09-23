@@ -1,5 +1,5 @@
   LogLevel: "debug"
-  port: 9096
+  port: 9097
   # driver: "mysql"
   # connection: "root:kXbXt2nLrL@tcp(localhost:3306)/idx?&parseTime=true"
   driver: "pgx"

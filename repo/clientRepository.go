@@ -16,6 +16,6 @@ func NewClientRepository(db *gorm.DB) *DBClientRepository {
 }
 func (r *DBClientRepository) GetClientByClientID(id string) (model.IClient, error) {
 	result := &models.Client{}
-	tx := r.DB.Table(result.TableName()).Where("client_id = ?", id).First(result)
+	tx := r.DB.Table(result.TableName()).Where("client_id = ?", id).Preload("Claims").Preload("Secrets").Preload("Origins").Preload("LogoutUris").First(result)
 	return result, tx.Error
 }
