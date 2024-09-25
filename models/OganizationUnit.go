@@ -1,20 +1,17 @@
 package models
 
 import (
-	"fmt"
-
 	"gopkg.in/guregu/null.v4"
 )
 
 type OrganizationUnit struct {
-	Id          string             `json:"id" gorm:"primary_key;type:varchar(36);not null"`
-	Name        string             `json:"name" gorm:" type:varchar(255)"`
-	DisplayName string             `json:"text" gorm:" type:varchar(255)"`
-	Parent      null.String        `json:"parent" gorm:"type:varchar(36)"`
-	SortOrder   int                `json:"sortorder"`
-	Path        string             `json:"path" gorm:"type:varchar(2048)"`
-	Children    []OrganizationUnit `json:"nodes" gorm:"foreignkey:Parent;association_foreignkey:Id"`
-	Record      `gorm:"embedded"`
+	Name            string             `json:"name" gorm:" type:varchar(255)"`
+	DisplayName     string             `json:"text" gorm:" type:varchar(255)"`
+	ParentId        null.Int           `json:"parentId" `
+	SortOrder       int                `json:"sortorder"`
+	Path            string             `json:"path" gorm:"type:varchar(2048)"`
+	Children        []OrganizationUnit `json:"nodes" gorm:"foreignkey:ParentId;association_foreignkey:Id"`
+	SnowflakeRecord `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -25,11 +22,15 @@ type OrganizationUnit struct {
 func (m *OrganizationUnit) GetID() interface{} {
 	return m.Id
 }
-func (m *OrganizationUnit) SetID(id interface{}) {
-	m.Id = fmt.Sprintf("%v", id)
-}
+
+//	func (m *OrganizationUnit) SetID(id interface{}) {
+//		m.Id = fmt.Sprintf("%v", id)
+//	}
 func (m *OrganizationUnit) ParentID() interface{} {
-	return m.Parent
+	if !m.ParentId.Valid {
+		return ""
+	}
+	return m.ParentId
 }
 
 func (m *OrganizationUnit) SetChildren(children []interface{}) {

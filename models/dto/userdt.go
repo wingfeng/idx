@@ -1,21 +1,23 @@
 package dto
 
 import (
+	"github.com/bwmarrin/snowflake"
 	"github.com/jinzhu/copier"
 	"github.com/wingfeng/idx/models"
+	"gorm.io/datatypes"
 )
 
 type UserDto struct {
-	Id           string   `json:"id"`
-	OUId         string   `json:"ouid"`
-	OU           string   `json:"ou" `
-	Account      string   `json:"preferred_username" `
-	DisplayName  string   `json:"displayname" `
-	Email        string   `json:"email" `
-	PhoneNumber  string   `json:"phonenumber"`
-	PasswordHash string   `json:"-"`
-	Roles        []string `json:"roles" copier:"-"`
-	UserClaims   []string `json:"claims" copier:"-"`
+	Id           snowflake.ID   `json:"id"`
+	OUId         snowflake.ID   `json:"ouid"`
+	OU           string         `json:"ou" `
+	Account      string         `json:"preferred_username" `
+	DisplayName  string         `json:"displayname" `
+	Email        string         `json:"email" `
+	PhoneNumber  string         `json:"phonenumber"`
+	PasswordHash string         `json:"-"`
+	Roles        []string       `json:"roles" copier:"-"`
+	Claims       datatypes.JSON `json:"claims"`
 }
 
 func NewUserDto(user *models.User) *UserDto {
@@ -34,7 +36,7 @@ func NewUserDto(user *models.User) *UserDto {
 }
 
 func (r *UserDto) GetId() string {
-	return r.Id
+	return r.Id.String()
 }
 
 func (r *UserDto) GetUserName() string {

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"strings"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/labstack/gommon/log"
 
 	"gorm.io/driver/mysql"
@@ -59,4 +60,13 @@ func HashAccessToken(token string) string {
 	buf = buf[:len(buf)/2]
 	code := base64.URLEncoding.EncodeToString(buf)
 	return strings.TrimRight(code, "=")
+}
+
+func GeneratID() snowflake.ID {
+	node, _ := snowflake.NewNode(1)
+	return node.Generate()
+}
+
+func GeneratIDString() string {
+	return GeneratID().String()
 }

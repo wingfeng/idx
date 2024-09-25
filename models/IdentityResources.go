@@ -2,7 +2,6 @@ package models
 
 // IdentityResources [...]
 type IdentityResources struct {
-	Id                      int                  `gorm:"primary_key;auto_Increment;not null"`
 	Enabled                 bool                 `gorm:"not null"`
 	Name                    string               `gorm:"unique;type:varchar(200);not null"`
 	DisplayName             string               `gorm:"type:varchar(200)"`
@@ -12,5 +11,5 @@ type IdentityResources struct {
 	ShowInDiscoveryDocument bool                 `gorm:"not null"`
 	Properties              []IdentityProperties `gorm:"foreignkey:IdentityResourceId"`
 	Claims                  []IdentityClaims     `gorm:"foreignkey:IdentityResourceId"`
-	Record                  `gorm:"embedded"`
+	IntRecord               `gorm:"embedded"`
 }

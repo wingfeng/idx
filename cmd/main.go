@@ -14,9 +14,9 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
-
 	"github.com/golang-jwt/jwt"
 	"github.com/lunny/log"
+	backend "github.com/wingfeng/idxadmin"
 
 	"github.com/spf13/viper"
 	oauth2 "github.com/wingfeng/idx-oauth2"
@@ -179,6 +179,16 @@ func initConfig(confPath string) *Option {
 	}
 
 	return opts
+}
+
+func startAdminBackend(route gin.IRouter, op *Option) {
+
+	options := &backend.EntryOption{
+		Driver:        op.Driver,
+		Connection:    op.Connection,
+		RootGroupName: "IDX",
+	}
+	backend.Init(options, route)
 }
 func Version() {
 	fmt.Printf("App Name:\t%s\n", AppName)

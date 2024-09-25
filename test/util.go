@@ -1,12 +1,14 @@
 package test
 
 import (
-	"encoding/base64"
-	"fmt"
+	"github.com/bwmarrin/snowflake"
 )
 
-func generateBasicAuthHeader(username, password string) string {
-	authStr := fmt.Sprintf("%s:%s", username, password)
-	basicAuth := base64.StdEncoding.EncodeToString([]byte(authStr))
-	return fmt.Sprintf("Basic %s", basicAuth)
+func GeneratID() snowflake.ID {
+	node, _ := snowflake.NewNode(1)
+	return node.Generate()
+}
+
+func GeneratIDString() string {
+	return GeneratID().String()
 }

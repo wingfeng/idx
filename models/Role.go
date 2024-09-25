@@ -3,17 +3,19 @@ package models
 import (
 	"strings"
 
+	"github.com/bwmarrin/snowflake"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 // Role [...]
 type Role struct {
-	Id             string       `json:"id" gorm:"primary_key;type:varchar(255);not null"`
-	Name           string       `gorm:"type:varchar(256)"`
-	NormalizedName string       `gorm:"unique;type:varchar(256)"`
-	Claims         []RoleClaims `gorm:"foreignkey:RoleId"`
-	Users          []User       `gorm:"many2many:user_roles"`
-	Record         `gorm:"embedded"`
+	Name           string `gorm:"type:varchar(256)"`
+	NormalizedName string `gorm:"unique;type:varchar(256)"`
+
+	Users           []User `gorm:"-"`
+	Claims          datatypes.JSON
+	SnowflakeRecord `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -23,7 +25,7 @@ type Role struct {
 
 // SetID 获取当前记录的ID
 func (r *Role) SetID(v interface{}) {
-	r.Id = v.(string)
+	r.Id = v.(snowflake.ID)
 }
 
 func (r *Role) GetID() interface{} {

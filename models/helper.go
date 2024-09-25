@@ -13,10 +13,8 @@ func Sync2Db(x *gorm.DB) {
 	// 同步结构体与数据表
 	err := x.Debug().AutoMigrate(
 
-		new(APIClaims),
-		new(APIProperties),
 		new(APIResources),
-		new(APIScopeClaims),
+
 		new(APIScopes),
 		new(APISecrets))
 	if err != nil {
@@ -24,10 +22,8 @@ func Sync2Db(x *gorm.DB) {
 	}
 	err = x.Debug().AutoMigrate(
 
-		new(ClientClaims),
 		new(ClientCorsOrigins),
 
-		new(ClientProperties),
 		new(ClientPostLogoutRedirectURIs),
 		new(Client),
 
@@ -38,9 +34,9 @@ func Sync2Db(x *gorm.DB) {
 		new(IdentityResources),
 		new(OrganizationUnit),
 		new(PersistedGrants),
-		new(RoleClaims),
+
 		new(Role),
-		new(UserClaims),
+
 		new(UserLogins),
 		new(UserRoles),
 		new(User),

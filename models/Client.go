@@ -2,11 +2,12 @@ package models
 
 import (
 	"strings"
+
+	"gorm.io/datatypes"
 )
 
 // Client [...]
 type Client struct {
-	Id                                int                            `json:"Id,omitempty" gorm:"primary_key;auto_Increment;not null"`
 	Enabled                           bool                           `gorm:"not null"`
 	ClientId                          string                         `gorm:"uniqueIndex;type:varchar(256);not null"`
 	GrantTypes                        string                         `gorm:"type:varchar(256)"`
@@ -46,9 +47,9 @@ type Client struct {
 	LogoutUris                        []ClientPostLogoutRedirectURIs `gorm:"foreignKey:ClientId"`
 	Secrets                           []ClientSecrets                `gorm:"foreignKey:ClientId"`
 	Origins                           []ClientCorsOrigins            `gorm:"foreignKey:ClientId"`
-	Claims                            []ClientClaims                 `gorm:"foreignKey:ClientId"`
-	Properties                        []ClientProperties             `gorm:"foreignKey:ClientId"`
-	Record                            `gorm:"embedded"`
+	Claims                            datatypes.JSON
+	Properties                        datatypes.JSON
+	IntRecord                         `gorm:"embedded"`
 }
 
 func (c *Client) TableName() string {

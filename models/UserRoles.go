@@ -1,13 +1,15 @@
 package models
 
+import "github.com/bwmarrin/snowflake"
+
 // UserRoles [...]
 type UserRoles struct {
-	UserId string `gorm:"primary_key;type:varchar(255);not null"`
+	OUId snowflake.ID `gorm:"primary_key;column:ou_id;not null"`
 
-	RoleId string `gorm:"primary_key;index:IX_UserRoles_RoleId;type:varchar(255);not null"`
-	OUId   string `gorm:"column:ou_id;primary_key;type:varchar(36);not null"`
+	UserId snowflake.ID `gorm:"primary_key;not null"`
+	RoleId snowflake.ID `gorm:"primary_key;not null"`
 
-	Record `gorm:"embedded"`
+	//	Record `gorm:"embedded"`
 }
 
 // //TableName 数据表名称
@@ -15,6 +17,6 @@ type UserRoles struct {
 // 	return "UserRoles"
 // }
 
-func (m *UserRoles) GetID() interface{} {
-	return m
-}
+// func (m *UserRoles) GetID() interface{} {
+// 	return m
+// }

@@ -4,11 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bwmarrin/snowflake"
 	constants "github.com/wingfeng/idx-oauth2/const"
 	"github.com/wingfeng/idx-oauth2/utils"
 	"github.com/wingfeng/idx/models"
 	idxutils "github.com/wingfeng/idx/utils"
 	"gopkg.in/guregu/null.v4"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -31,11 +33,11 @@ func initDB() {
 // Parameter t is a pointer to testing.T, which is used to report test failures.
 // No return values.
 func TestSeedData(t *testing.T) {
-	//	node, err := snowflake.NewNode(1)
+
 	initDB()
 
 	ou := &models.OrganizationUnit{}
-	ou.Id = "1328680589330485248"
+	ou.Id = 1328680589330485248
 	ou.Name = "集团"
 	ou.DisplayName = "XXX集团"
 	ou.Path = "0"
@@ -45,25 +47,26 @@ func TestSeedData(t *testing.T) {
 	}
 
 	ou = &models.OrganizationUnit{}
-	ou.Id = "1328680589330485249"
+	ou.Id = 1328680589330485249
 	ou.Name = "子公司"
 	ou.DisplayName = "XXX集团子公司"
-	ou.Parent = null.NewString("1328680589330485248", true)
+	ou.ParentId = null.NewInt(1328680589330485248, true)
 	ou.Path = "0.1"
+
 	err = db.Save(ou).Error
 	if err != nil {
 		panic(err)
 	}
 
 	user := &models.User{}
-	user.Id = "7a45cb54-b0ff-4ecd-95b9-074d33aaac1e"
+	user.Id = 1838872840128958464
 	user.Account = "admin"
 	user.DisplayName = "管理员"
 	user.Email = "admin@idx.local"
 	user.EmailConfirmed = true
 	user.OUId = ou.Id
 	user.OU = ou.DisplayName
-
+	user.Claims = datatypes.JSON([]byte(`{"alias":"db_admin"}`))
 	user.PasswordHash, _ = utils.HashPassword("password1")
 
 	err = db.Save(user).Error
@@ -72,13 +75,13 @@ func TestSeedData(t *testing.T) {
 	}
 	role := &models.Role{}
 
-	role.Id = "d4d1a7f6-9f33-4ed6-a320-df3754c6e43b"
-	role.Name = "SystemAdmin"
+	role.Id = 1838872840128958465
+	role.Name = "admin"
 	addRole(role)
 	addUserRole(user.Id, ou.Id, role.Id)
 	role = &models.Role{}
 
-	role.Id = "d4d1a7f6-9f33-4ed6-a320-df3754c6e43c"
+	role.Id = 1838872840128958466
 	role.Name = "科室主任"
 	addRole(role)
 	addUserRole(user.Id, ou.Id, role.Id)
@@ -103,7 +106,7 @@ func TestSeedData(t *testing.T) {
 // Return:
 // - None
 func addClient(clientId, secret, grantType string, t *testing.T) {
-	//requireSecret := len(secret) > 0
+	requireSecret := len(secret) > 0
 
 	client := &models.Client{
 
@@ -115,7 +118,7 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 
 		Scopes:         "openid email profile roles",
 		RequireConsent: true,
-
+		RequireSecret:  requireSecret,
 		//UserSsoLifetime: , can be zero
 	}
 
@@ -131,10 +134,13 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 		t.Logf("insert client error: %v", result.Error)
 		panic(result.Error)
 	}
-	addClientScecret(secret, newClient.Id)
+	if requireSecret {
+		addClientScecret(secret, newClient.Id)
+	}
+
 	addClientOrigin("*", newClient.Id)
 }
-func addClientOrigin(origin string, clientid int) {
+func addClientOrigin(origin string, clientid int64) {
 
 	db.Unscoped().Delete(&models.ClientCorsOrigins{}, "client_id = ?", clientid)
 
@@ -148,7 +154,7 @@ func addClientOrigin(origin string, clientid int) {
 		panic(err)
 	}
 }
-func addClientScecret(secret string, clientid int) {
+func addClientScecret(secret string, clientid int64) {
 	db.Unscoped().Delete(&models.ClientSecrets{}, "client_id = ?", clientid)
 	sc := &models.ClientSecrets{
 		Type:     "SHA256",
@@ -163,7 +169,7 @@ func addClientScecret(secret string, clientid int) {
 	}
 }
 
-func addUserRole(uid, ouid, rid string) {
+func addUserRole(uid, ouid, rid snowflake.ID) {
 
 	ur := &models.UserRoles{
 		RoleId: rid,
