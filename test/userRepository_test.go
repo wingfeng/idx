@@ -3,6 +3,7 @@ package test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/wingfeng/idx/repo"
 )
 
@@ -26,4 +27,24 @@ func TestDBUserRepository_GetUserByUserName(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(user)
+}
+
+func TestChangePassword(t *testing.T) {
+	db := initTestDb()
+	repo := repo.NewUserRepository(db)
+
+	err := repo.ChangePassword("admin", "123456", "654321")
+	assert.Error(t, err)
+	resetedPwd, err := repo.ResetPassword("admin")
+	err = repo.ChangePassword("admin", resetedPwd, "password1")
+	assert.NoError(t, err)
+}
+func TestResetPassword(t *testing.T) {
+	db := initTestDb()
+	repo := repo.NewUserRepository(db)
+	newPwd, err := repo.ResetPassword("admin")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, newPwd)
+	assert.Equal(t, 8, len(newPwd))
+	t.Log(newPwd)
 }

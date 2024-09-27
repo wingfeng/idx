@@ -11,7 +11,7 @@ func Sync2Db(x *gorm.DB) {
 	x.DisableForeignKeyConstraintWhenMigrating = true
 
 	// 同步结构体与数据表
-	err := x.Debug().AutoMigrate(
+	err := x.AutoMigrate(
 
 		new(APIResources),
 
@@ -20,7 +20,7 @@ func Sync2Db(x *gorm.DB) {
 	if err != nil {
 		slog.Error("同步数据结构错误,Error:", "error", err)
 	}
-	err = x.Debug().AutoMigrate(
+	err = x.AutoMigrate(
 
 		new(ClientCorsOrigins),
 

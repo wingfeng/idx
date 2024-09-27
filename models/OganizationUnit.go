@@ -1,13 +1,11 @@
 package models
 
-import (
-	"gopkg.in/guregu/null.v4"
-)
+import "github.com/bwmarrin/snowflake"
 
 type OrganizationUnit struct {
 	Name            string             `json:"name" gorm:" type:varchar(255)"`
 	DisplayName     string             `json:"text" gorm:" type:varchar(255)"`
-	ParentId        null.Int           `json:"parentId" `
+	ParentId        snowflake.ID       `json:"parentId,omitempty" `
 	SortOrder       int                `json:"sortorder"`
 	Path            string             `json:"path" gorm:"type:varchar(2048)"`
 	Children        []OrganizationUnit `json:"nodes" gorm:"foreignkey:ParentId;association_foreignkey:Id"`
@@ -20,17 +18,19 @@ type OrganizationUnit struct {
 //		return "OrganizationUnit"
 //	}
 func (m *OrganizationUnit) GetID() interface{} {
-	return m.Id
+	return m.Id.Int64()
 }
 
 //	func (m *OrganizationUnit) SetID(id interface{}) {
 //		m.Id = fmt.Sprintf("%v", id)
 //	}
 func (m *OrganizationUnit) ParentID() interface{} {
-	if !m.ParentId.Valid {
-		return ""
+	result := m.ParentId.Int64()
+	if result == 0 {
+		return nil
+	} else {
+		return result
 	}
-	return m.ParentId
 }
 
 func (m *OrganizationUnit) SetChildren(children []interface{}) {

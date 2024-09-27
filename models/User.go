@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/snowflake"
-	"github.com/wingfeng/idxadmin/utils"
 	"gopkg.in/guregu/null.v4"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -42,7 +41,6 @@ type User struct {
 // }
 
 func (r *User) BeforeCreate(tx *gorm.DB) error {
-	r.Id = utils.GeneratID()
 	r.NormalizedAccount = strings.ToUpper(r.Account)
 	r.NormalizedEmail = strings.ToUpper(r.Email)
 	return nil
@@ -54,12 +52,13 @@ func (r *User) BeforeUpdate(tx *gorm.DB) error {
 	return nil
 }
 
-func (r *User) GetUserName() string {
-	return r.NormalizedAccount
-}
-func (r *User) GetEmail() string {
-	return r.Email
-}
+//	func (r *User) GetUserName() string {
+//		return r.NormalizedAccount
+//	}
+//
+//	func (r *User) GetEmail() string {
+//		return r.Email
+//	}
 func (r *User) GetPasswordHash() string {
 	return r.PasswordHash
 }

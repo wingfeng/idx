@@ -8,16 +8,17 @@ import (
 )
 
 type UserDto struct {
-	Id           snowflake.ID   `json:"id"`
-	OUId         snowflake.ID   `json:"ouid"`
-	OU           string         `json:"ou" `
-	Account      string         `json:"preferred_username" `
-	DisplayName  string         `json:"displayname" `
-	Email        string         `json:"email" `
-	PhoneNumber  string         `json:"phonenumber"`
-	PasswordHash string         `json:"-"`
-	Roles        []string       `json:"roles" copier:"-"`
-	Claims       datatypes.JSON `json:"claims"`
+	Id                  snowflake.ID   `json:"id"`
+	OUId                snowflake.ID   `json:"ouid"`
+	OU                  string         `json:"ou" `
+	Account             string         `json:"preferred_username" `
+	DisplayName         string         `json:"displayname" `
+	Email               string         `json:"email" `
+	PhoneNumber         string         `json:"phonenumber"`
+	PasswordHash        string         `json:"-"`
+	IsTemporaryPassword bool           `json:"istemporarypassword"`
+	Roles               []string       `json:"roles" copier:"-"`
+	Claims              datatypes.JSON `json:"claims"`
 }
 
 func NewUserDto(user *models.User) *UserDto {

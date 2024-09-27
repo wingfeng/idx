@@ -23,9 +23,11 @@ import (
 	"github.com/wingfeng/idx-oauth2/conf"
 	"github.com/wingfeng/idx-oauth2/service"
 	"github.com/wingfeng/idx-oauth2/service/impl"
+	"github.com/wingfeng/idx/controller"
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/models/dto"
 	"github.com/wingfeng/idx/repo"
+	myService "github.com/wingfeng/idx/service"
 	"github.com/wingfeng/idx/utils"
 )
 
@@ -100,16 +102,25 @@ func main() {
 	consentRepo := repo.NewConsentRepository(db)
 	clientRepo := repo.NewClientRepository(db)
 	tokenService, jwks := buildTokenService(config, userRepo)
-	tenant := oauth2.NewTenant(config, userRepo,
+	us := myService.NewUserService(userRepo)
+	tenant := oauth2.NewTenant(config,
 		clientRepo,
 		authRepo,
 		consentRepo,
+		us,
 		tokenService, jwks)
 	router.LoadHTMLGlob("../static/*.html")
 	router.Static("/img", "../static/img")
-
+	authCtrl := controller.NewAuthController(us)
+	tenant.LoginCtrl = authCtrl
+	tenant.LogoutCtrl = authCtrl
 	tenant.InitOAuth2Router(router, sessions.Sessions("idx_session", store))
-
+	//	authCtrl := controller.NewAuthController(userRepo)
+	g := router.Group("idx")
+	authCtrl.RegistRoute(g)
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(302, "/idx")
+	})
 	slog.Info("Server is running at", "port", option.Port)
 
 	address := fmt.Sprintf("%s:%d", "", option.Port)

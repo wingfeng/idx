@@ -9,7 +9,6 @@ import (
 	"github.com/wingfeng/idx-oauth2/utils"
 	"github.com/wingfeng/idx/models"
 	idxutils "github.com/wingfeng/idx/utils"
-	"gopkg.in/guregu/null.v4"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -50,7 +49,11 @@ func TestSeedData(t *testing.T) {
 	ou.Id = 1328680589330485249
 	ou.Name = "子公司"
 	ou.DisplayName = "XXX集团子公司"
-	ou.ParentId = null.NewInt(1328680589330485248, true)
+	ou.ParentId = 1328680589330485248
+	//  sql.NullInt64{
+	// 	Valid: true,
+	// 	Int64: 1328680589330485248,
+	// }
 	ou.Path = "0.1"
 
 	err = db.Save(ou).Error
