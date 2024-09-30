@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
-	"math/rand"
 	"strings"
 
 	"github.com/bwmarrin/snowflake"
@@ -70,17 +69,4 @@ func GeneratID() snowflake.ID {
 
 func GeneratIDString() string {
 	return GeneratID().String()
-}
-
-// GenerateRandomString generates a random string of a given length consisting of letters and digits.
-func GenerateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+=-"
-	result := make([]byte, length)
-	//rand.Seed(time.Now().UnixNano())
-
-	for i := 0; i < length; i++ {
-		result[i] = charset[rand.Intn(len(charset))]
-	}
-
-	return string(result)
 }

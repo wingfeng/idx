@@ -8,7 +8,6 @@ import (
 	"github.com/wingfeng/idx-oauth2/utils"
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/models/dto"
-	myutils "github.com/wingfeng/idx/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -81,7 +80,7 @@ func (repo *DBUserRepository) ChangePassword(username, oldPassword, newPassword 
 // Reset user password with a temporary password
 func (repo *DBUserRepository) ResetPassword(username string) (string, error) {
 	//generate password with random string
-	newPassword := myutils.GenerateRandomString(8)
+	newPassword := utils.GenerateRandomString(8)
 	newHash, err := utils.HashPassword(newPassword)
 	if err != nil {
 		return "", err

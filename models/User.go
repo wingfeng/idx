@@ -30,9 +30,9 @@ type User struct {
 	AccessFailedCount    int          `json:"accessfailedcount" gorm:"type:int;not null"`
 
 	SnowflakeRecord `gorm:"embedded"`
-	Roles           []Role `gorm:"-"`
-	Claims          datatypes.JSON
-	Logins          []UserLogins `gorm:"foreignKey:UserId"`
+	Roles           []Role         `gorm:"-"`
+	Claims          datatypes.JSON `json:"claims" gorm:"column:claims"`
+	Logins          []UserLogins   `gorm:"foreignKey:UserId"`
 }
 
 // //TableName 数据表名称
@@ -43,6 +43,7 @@ type User struct {
 func (r *User) BeforeCreate(tx *gorm.DB) error {
 	r.NormalizedAccount = strings.ToUpper(r.Account)
 	r.NormalizedEmail = strings.ToUpper(r.Email)
+	r.IsTemporaryPassword = true
 	return nil
 }
 func (r *User) BeforeUpdate(tx *gorm.DB) error {

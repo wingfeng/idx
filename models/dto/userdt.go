@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/bwmarrin/snowflake"
 	"github.com/jinzhu/copier"
 	"github.com/wingfeng/idx/models"
@@ -8,17 +10,21 @@ import (
 )
 
 type UserDto struct {
-	Id                  snowflake.ID   `json:"id"`
-	OUId                snowflake.ID   `json:"ouid"`
-	OU                  string         `json:"ou" `
-	Account             string         `json:"preferred_username" `
-	DisplayName         string         `json:"displayname" `
-	Email               string         `json:"email" `
-	PhoneNumber         string         `json:"phonenumber"`
-	PasswordHash        string         `json:"-"`
-	IsTemporaryPassword bool           `json:"istemporarypassword"`
-	Roles               []string       `json:"roles" copier:"-"`
-	Claims              datatypes.JSON `json:"claims"`
+	Id                   snowflake.ID   `json:"id"`
+	OUId                 snowflake.ID   `json:"ouid"`
+	OU                   string         `json:"ou" `
+	Account              string         `json:"preferred_username" `
+	DisplayName          string         `json:"displayname" `
+	Email                string         `json:"email" `
+	EmailConfirmed       bool           `json:"emailconfirmed"`
+	PhoneNumber          string         `json:"phonenumber"`
+	PhoneNumberConfirmed bool           `json:"phonenumberconfirmed"`
+	PasswordHash         string         `json:"-"`
+	IsTemporaryPassword  bool           `json:"istemporarypassword"`
+	Lockoutenabled       bool           `json:"lockoutenabled"`
+	Lockoutend           time.Time      `json:"lockoutend"`
+	Roles                []string       `json:"roles" copier:"-" gorm:"-"`
+	Claims               datatypes.JSON `json:"claims"`
 }
 
 func NewUserDto(user *models.User) *UserDto {
