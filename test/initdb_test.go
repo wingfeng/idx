@@ -81,13 +81,13 @@ func TestSeedData(t *testing.T) {
 	role.Id = 1838872840128958465
 	role.Name = "admin"
 	addRole(role)
-	addUserRole(user.Id, ou.Id, role.Id)
+	addUserRole(user.Id, role.Id)
 	role = &models.Role{}
 
 	role.Id = 1838872840128958466
 	role.Name = "科室主任"
 	addRole(role)
-	addUserRole(user.Id, ou.Id, role.Id)
+	addUserRole(user.Id, role.Id)
 	addClient("implicit_client", "secret", "implicit", t)
 	addClient("hybrid_client", "secret", "authorization_code implicit "+string(constants.DeviceCode)+" password client_credential", t)
 	addClient("code_client", "secret", "authorization_code", t)
@@ -160,7 +160,7 @@ func addClientOrigin(origin string, clientid int64) {
 func addClientScecret(secret string, clientid int64) {
 	db.Unscoped().Delete(&models.ClientSecrets{}, "client_id = ?", clientid)
 	sc := &models.ClientSecrets{
-		Type:     "SHA256",
+
 		ClientId: clientid,
 	}
 	sc.Value, _ = utils.HashPassword(secret)
@@ -172,12 +172,11 @@ func addClientScecret(secret string, clientid int64) {
 	}
 }
 
-func addUserRole(uid, ouid, rid snowflake.ID) {
+func addUserRole(uid, rid snowflake.ID) {
 
 	ur := &models.UserRoles{
 		RoleId: rid,
 		UserId: uid,
-		OUId:   ouid,
 	}
 	//联合主键的直接用engine来处理
 	err := db.Save(ur).Error

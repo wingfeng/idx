@@ -26,7 +26,7 @@ func (repo *DBUserRepository) GetUser(userId string) (model.IUser, error) {
 	if err != nil {
 		return nil, err
 	}
-	tx := repo.DB.Model(models.User{}).Where("id = ? and lockout_enabled=false", p).First(&user)
+	tx := repo.DB.Model(&models.User{}).Preload("Roles").Where("id = ? and lockout_enabled=false", p).First(&user)
 
 	if tx.Error == nil {
 		repo.DB.Model(&roles).Joins("join user_roles on user_roles.role_id=roles.id").Where("user_roles.user_id=?", user.Id).Find(&roles)
@@ -39,8 +39,7 @@ func (repo *DBUserRepository) GetUserByName(username string) (model.IUser, error
 	var user models.User
 	roles := make([]models.Role, 0)
 
-	repo.DB.SetupJoinTable(&models.User{}, "Roles", &models.UserRoles{})
-	tx := repo.DB.Where("normalized_account = ? and lockout_enabled=false", strings.ToUpper(username)).First(&user)
+	tx := repo.DB.Model(&models.User{}).Preload("Roles").Where("normalized_account = ? and lockout_enabled=false", strings.ToUpper(username)).First(&user)
 	if tx.Error == nil {
 		repo.DB.Model(&roles).Joins("join user_roles on user_roles.role_id=roles.id").Where("user_roles.user_id=?", user.Id).Find(&roles)
 		user.Roles = roles

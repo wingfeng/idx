@@ -1,6 +1,8 @@
 package test
 
 import (
+	"testing"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
@@ -27,4 +29,8 @@ func init_router() *gin.Engine {
 
 	return nil
 
+}
+func TestNewID(t *testing.T) {
+	id := idxutils.GeneratID()
+	t.Logf("%d", id)
 }

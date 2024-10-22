@@ -12,3 +12,7 @@ type APIResources struct {
 	Properties  datatypes.JSON
 	IntRecord   `gorm:"embedded"`
 }
+
+func (APIResources) TableName() string {
+	return "api_resources"
+}

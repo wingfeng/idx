@@ -30,24 +30,42 @@ type User struct {
 	AccessFailedCount    int          `json:"accessfailedcount" gorm:"type:int;not null"`
 
 	SnowflakeRecord `gorm:"embedded"`
-	Roles           []Role         `gorm:"-"`
+	Roles           []Role         `gorm:"many2many:user_roles;"`
 	Claims          datatypes.JSON `json:"claims" gorm:"column:claims"`
 	Logins          []UserLogins   `gorm:"foreignKey:UserId"`
 }
 
-// //TableName 数据表名称
-// func (m *User) TableName() string {
-// 	return "Users"
+// implement base.Row GetID
+func (m *User) GetID() interface{} {
+	return m.Id
+}
+
+// func (m *User) GetID() interface{} {
+// 	return m.Id
 // }
+
+// TableName 数据表名称
+func (m *User) TableName() string {
+	return "users"
+}
 
 func (r *User) BeforeCreate(tx *gorm.DB) error {
 	r.NormalizedAccount = strings.ToUpper(r.Account)
 	r.NormalizedEmail = strings.ToUpper(r.Email)
 	r.IsTemporaryPassword = true
+	// u, ok := tx.Get("user")
+	// if ok {
+	// 	r.Creator = fmt.Sprintf("%v", u)
+	// }
+	// uID, ok := tx.Get("userid")
+	// if ok {
+	// 	r.CreatorId = fmt.Sprintf("%v", uID)
+	// }
 	return nil
 }
-func (r *User) BeforeUpdate(tx *gorm.DB) error {
 
+func (r *User) BeforeUpdate(tx *gorm.DB) error {
+	r.Record.BeforeUpdate(tx)
 	r.NormalizedAccount = strings.ToUpper(r.Account)
 	r.NormalizedEmail = strings.ToUpper(r.Email)
 	return nil

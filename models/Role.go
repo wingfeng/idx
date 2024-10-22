@@ -13,7 +13,7 @@ type Role struct {
 	Name           string `gorm:"type:varchar(256)"`
 	NormalizedName string `gorm:"unique;type:varchar(256)"`
 
-	Users           []User `gorm:"-"`
+	Users           []User `gorm:"many2many:user_roles;"`
 	Claims          datatypes.JSON
 	SnowflakeRecord `gorm:"embedded"`
 }
