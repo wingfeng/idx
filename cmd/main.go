@@ -149,8 +149,9 @@ func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (se
 	key.Alg = "RS256"
 	jwks := &conf.JWKS{Keys: []interface{}{key}}
 
-	tokenService := impl.NewJwtTokenService(jwt.SigningMethodRS256, privateKey, func(userName string, scope string) map[string]interface{} {
+	tokenService := impl.NewJwtTokenService(jwt.SigningMethodRS256, privateKey, func(token *jwt.Token, userName string, scope string) map[string]interface{} {
 		u, _ := userRepo.GetUserByName(userName)
+		token.Header["kid"] = "d2a820a8916647f7ac72627ec0ae4f94"
 		user := u.(*dto.UserDto)
 		result := map[string]interface{}{}
 		//

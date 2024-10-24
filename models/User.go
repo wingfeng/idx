@@ -33,6 +33,7 @@ type User struct {
 	Roles           []Role         `gorm:"many2many:user_roles;"`
 	Claims          datatypes.JSON `json:"claims" gorm:"column:claims"`
 	Logins          []UserLogins   `gorm:"foreignKey:UserId"`
+	Groups          []Group        `gorm:"many2many:user_groups;"`
 }
 
 // implement base.Row GetID

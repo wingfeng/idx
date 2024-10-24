@@ -26,3 +26,8 @@ IDX_HTTPSCHEME
 
 生成测试数据
 func /test/initdb_test.go/TestSeedData  
+## Test
+docker run -d --name mysql-test -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password1 mysql
+docker run --name wp --link mysql-test -p 1080:80 -d wordpress
+docker run --restart=always -p 6379:6379 --name myredis -d redis
+docker run -d --name postgres-test -p 5432:5432 -e POSTGRES_PASSWORD=pass@word1 postgres

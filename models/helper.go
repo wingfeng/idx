@@ -13,10 +13,8 @@ func Sync2Db(x *gorm.DB) {
 	// 同步结构体与数据表
 	err := x.AutoMigrate(
 
-		new(APIResources),
-
-		new(APIScopes),
-		new(APISecrets))
+		new(Scopes),
+	)
 	if err != nil {
 		slog.Error("同步数据结构错误,Error:", "error", err)
 	}
@@ -29,14 +27,11 @@ func Sync2Db(x *gorm.DB) {
 
 		new(ClientSecrets),
 
-		new(IdentityClaims),
-		new(IdentityProperties),
-		new(IdentityResources),
 		new(OrganizationUnit),
 		new(PersistedGrants),
 
 		new(Role),
-
+		new(Group),
 		new(UserLogins),
 		new(UserRoles),
 		new(User),

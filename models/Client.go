@@ -13,7 +13,7 @@ type Client struct {
 	GrantTypes                        string                         `gorm:"type:varchar(256)"`
 	Scopes                            string                         `gorm:"type:varchar(256)"`
 	RedirectUris                      string                         `gorm:"type:varchar(4096)"`
-	ProtocolType                      string                         `gorm:"type:varchar(200);not null"`
+	ProtocolType                      string                         `gorm:"type:varchar(200);"`
 	RequireSecret                     bool                           `gorm:"not null"`
 	ClientName                        string                         `gorm:"type:varchar(200)"`
 	Description                       string                         `gorm:"type:varchar(1000)"`
