@@ -1,18 +1,14 @@
 package models
 
 import (
-	"strings"
-
 	"github.com/bwmarrin/snowflake"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 )
 
 // Role [...]
 type Role struct {
-	Name           string `gorm:"type:varchar(256)"`
-	NormalizedName string `gorm:"unique;type:varchar(256)"`
-
+	Name            string `gorm:"type:varchar(256)"`
+	Description     string `gorm:"type:varchar(256)"`
 	Users           []User `gorm:"many2many:user_roles;"`
 	Claims          datatypes.JSON
 	SnowflakeRecord `gorm:"embedded"`
@@ -30,16 +26,4 @@ func (r *Role) SetID(v interface{}) {
 
 func (r *Role) GetID() interface{} {
 	return r.Id
-}
-func (r *Role) BeforeCreate(tx *gorm.DB) error {
-
-	r.NormalizedName = strings.ToUpper(r.Name)
-
-	return nil
-}
-func (r *Role) BeforeUpdate(tx *gorm.DB) error {
-
-	r.NormalizedName = strings.ToUpper(r.Name)
-
-	return nil
 }

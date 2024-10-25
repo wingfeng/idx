@@ -63,7 +63,7 @@ func TestSeedData(t *testing.T) {
 
 	user := &models.User{}
 	user.Id = 1838872840128958464
-	user.Account = "admin"
+	user.UserName = "admin"
 	user.DisplayName = "管理员"
 	user.Email = "admin@idx.local"
 	user.EmailConfirmed = true
@@ -80,6 +80,7 @@ func TestSeedData(t *testing.T) {
 
 	role.Id = 1838872840128958465
 	role.Name = "admin"
+	role.Description = "系统管理员"
 	addRole(role)
 	addUserRole(user.Id, role.Id)
 	role = &models.Role{}

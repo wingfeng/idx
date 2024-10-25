@@ -39,7 +39,7 @@ func (repo *DBUserRepository) GetUserByName(username string) (model.IUser, error
 	var user models.User
 	roles := make([]models.Role, 0)
 
-	tx := repo.DB.Model(&models.User{}).Preload("Roles").Where("normalized_account = ? and lockout_enabled=false", strings.ToUpper(username)).First(&user)
+	tx := repo.DB.Model(&models.User{}).Preload("Roles").Where("user_name = ? and lockout_enabled=false", strings.ToLower(username)).First(&user)
 	if tx.Error == nil {
 		repo.DB.Model(&roles).Joins("join user_roles on user_roles.role_id=roles.id").Where("user_roles.user_id=?", user.Id).Find(&roles)
 		user.Roles = roles
