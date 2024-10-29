@@ -89,7 +89,12 @@ func main() {
 
 	//初始化DB
 	db := utils.GetDB(option.Driver, option.Connection)
-
+	scopeRepo := repo.NewScopeRepository(db)
+	scopes, err := scopeRepo.GetSupportScopes()
+	if err != nil {
+		panic(err)
+	}
+	config.ScopesSupported = scopes
 	router := gin.Default()
 	store, err := redis.NewStore(10, "tcp", redisLink, "", []byte("secret"))
 	if err != nil {

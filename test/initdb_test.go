@@ -35,6 +35,8 @@ func TestSeedData(t *testing.T) {
 
 	initDB()
 
+	seedScopes()
+
 	ou := &models.OrganizationUnit{}
 	ou.Id = 1328680589330485248
 	ou.Name = "集团"
@@ -96,6 +98,35 @@ func TestSeedData(t *testing.T) {
 	addClient("local_test", "secret", "authorization_code", t)
 	addClient("client_credentials_client", "secret", "client_credentials", t)
 	addClient("device_code_client", "secret", string(constants.DeviceCode), t)
+
+}
+func seedScopes() {
+	scope := &models.Scopes{}
+	scope.Id = 1
+	scope.Name = "openid"
+	scope.Description = "openid scope,essential item do not  modify and delete"
+	scope.Enabled = true
+	scope.Properties = datatypes.JSON([]byte(`{"essential":"true"}`))
+
+	db.Table("scopes").Save(scope)
+
+	scope = &models.Scopes{}
+	scope.Id = 2
+	scope.Name = "profile"
+	scope.Description = "profile scope,essential item do not  modify and delete"
+	scope.Enabled = true
+	scope.Properties = datatypes.JSON([]byte(`{"essential":"true"}`))
+
+	db.Table("scopes").Save(scope)
+
+	scope = &models.Scopes{}
+	scope.Id = 3
+	scope.Name = "email"
+	scope.Description = "email scope,essential item do not  modify and delete"
+	scope.Enabled = true
+	scope.Properties = datatypes.JSON([]byte(`{"essential":"true"}`))
+
+	db.Table("scopes").Save(scope)
 
 }
 
