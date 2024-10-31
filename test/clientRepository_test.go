@@ -8,8 +8,8 @@ import (
 
 func TestClientRepository_GetClient(t *testing.T) {
 	db := initTestDb()
-	repo := repo.NewClientRepository(db)
-
+	repo := repo.NewClientRepository()
+	repo.DB = db
 	client, err := repo.GetClientByClientID("hybrid_client")
 	if err != nil {
 		t.Fatal(err)

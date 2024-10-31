@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/wingfeng/idx-oauth2/model"
+
 	"gorm.io/gorm"
 )
 
@@ -11,7 +12,8 @@ type DBAuthorizationRepository struct {
 	DB *gorm.DB
 }
 
-func NewAuthorizationRepository(db *gorm.DB) *DBAuthorizationRepository {
+func NewAuthorizationRepository() *DBAuthorizationRepository {
+	db := DefaultDB()
 	return &DBAuthorizationRepository{
 		DB: db,
 	}

@@ -15,13 +15,12 @@ import (
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/lunny/log"
 
-	"github.com/spf13/viper"
 	oauth2 "github.com/wingfeng/idx-oauth2"
 	"github.com/wingfeng/idx-oauth2/conf"
 	"github.com/wingfeng/idx-oauth2/service"
 	"github.com/wingfeng/idx-oauth2/service/impl"
+	myConf "github.com/wingfeng/idx/conf"
 	"github.com/wingfeng/idx/controller"
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/models/dto"
@@ -44,7 +43,7 @@ var (
 
 func main() {
 	showVersion := flag.Bool("ver", false, "程序版本")
-	confPath := flag.String("conf", "../conf/config.yaml", "配置文件路径")
+
 	syncDb := flag.Bool("syncdb", false, "同步数据结构到数据库.")
 	// dbDriver := *flag.String("db", "pgx", "DB Driver:mysql,pgx")
 	// dbConnection := *flag.String("dbConnection", "host=localhost port=5432 user=root password=pass@word1 dbname=idx sslmode=disable TimeZone=Asia/Shanghai", "DB Connection")
@@ -55,12 +54,10 @@ func main() {
 		Version()
 		return
 	}
-	option := initConfig(*confPath)
-	option.SyncDB = *syncDb
-
+	option := myConf.Default
 	redisLink := fmt.Sprintf("%s:%d", option.RedisHost, option.RedisPort)
 
-	if option.SyncDB {
+	if *syncDb {
 		//初始化DB
 		dbEngine := utils.GetDB(option.Driver, option.Connection)
 		models.Sync2Db(dbEngine)
@@ -88,8 +85,8 @@ func main() {
 	config := conf.DefaultConfig()
 
 	//初始化DB
-	db := utils.GetDB(option.Driver, option.Connection)
-	scopeRepo := repo.NewScopeRepository(db)
+
+	scopeRepo := repo.NewScopeRepository()
 	scopes, err := scopeRepo.GetSupportScopes()
 	if err != nil {
 		panic(err)
@@ -101,10 +98,10 @@ func main() {
 		slog.Error("Redis NewStore Error", "error", err)
 		panic(err)
 	}
-	authRepo := repo.NewAuthorizationRepository(db)
-	userRepo := repo.NewUserRepository(db)
-	consentRepo := repo.NewConsentRepository(db)
-	clientRepo := repo.NewClientRepository(db)
+	authRepo := repo.NewAuthorizationRepository()
+	userRepo := repo.NewUserRepository()
+	consentRepo := repo.NewConsentRepository()
+	clientRepo := repo.NewClientRepository()
 	tokenService, jwks := buildTokenService(config, userRepo)
 	us := myService.NewUserService(userRepo)
 	tenant := oauth2.NewTenant(config,
@@ -138,8 +135,19 @@ func main() {
 
 }
 func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (service.TokenService, *conf.JWKS) {
-	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	//load private key from pem file
+	var privateKey *rsa.PrivateKey
+	privateKeyPEM, _ := os.ReadFile(myConf.Default.PrivateKeyPath)
+
+	block, _ := pem.Decode(privateKeyPEM)
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
+		slog.Error("failed to decode PEM block containing private key\n gernerating a new private key")
+		privateKey = generatePrivateKey(myConf.Default.PrivateKeyPath)
+	} else {
+		privateKey, _ = x509.ParsePKCS1PrivateKey(block.Bytes)
+	}
 	publicKey := &privateKey.PublicKey
+
 	publicKeyBytes, _ := x509.MarshalPKIXPublicKey(publicKey)
 	// Convert the RSA public key to PEM format.
 	pemPublicKey := &pem.Block{
@@ -174,29 +182,17 @@ func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (se
 
 	return tokenService, jwks
 }
-func initConfig(confPath string) *Option {
-
-	viper.SetConfigFile(confPath)
-	viper.AddConfigPath(".")
-	viper.SetConfigType("yaml")
-	viper.AllowEmptyEnv(true)
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil {             // Handle errors reading the config file
-		panic(fmt.Errorf("读取配置文件错误: %s ", err.Error()))
-	}
-	viper.SetEnvPrefix("IDX")
-	viper.AutomaticEnv()
-
-	opts := &Option{}
-
-	err = viper.Unmarshal(opts)
-	if err != nil {
-		log.Error("读取配置错误:", err)
-	}
-
-	return opts
+func generatePrivateKey(file string) *rsa.PrivateKey {
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	privateKeyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		},
+	)
+	os.WriteFile(file, privateKeyPEM, 0600)
+	return privateKey
 }
-
 func Version() {
 	fmt.Printf("App Name:\t%s\n", AppName)
 	fmt.Printf("App Version:\t%s\n", AppVersion)

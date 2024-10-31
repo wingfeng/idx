@@ -15,7 +15,7 @@ type CacheHelper struct {
 	Provider ICacheProvider
 }
 
-func (ch *CacheHelper) Get(context context.Context, key string, GetFunc func() interface{}, duration time.Duration) (interface{}, error) {
+func (ch *CacheHelper) Get(context context.Context, key string, GetFunc func(key string) interface{}, duration time.Duration) (interface{}, error) {
 	if ch.Provider != nil {
 		result, exist := ch.Provider.Get(key)
 		if exist && result != nil {
@@ -26,7 +26,7 @@ func (ch *CacheHelper) Get(context context.Context, key string, GetFunc func() i
 	wg.Add(1)
 	c := make(chan interface{})
 	go func(k string) {
-		obj := GetFunc()
+		obj := GetFunc(k)
 		c <- obj
 	}(key)
 	obj := <-c

@@ -31,13 +31,10 @@ func GetDB(driver string, connection string) *gorm.DB {
 			Conn: sqlDB,
 		}), &gorm.Config{})
 
-		break
-	case "pgx":
+	case "pgx", "postgres", "pgsql":
 		x, err = gorm.Open(postgres.New(postgres.Config{
 			Conn: sqlDB,
 		}), &gorm.Config{})
-
-		break
 
 	}
 

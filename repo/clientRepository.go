@@ -11,7 +11,8 @@ type DBClientRepository struct {
 	DB *gorm.DB
 }
 
-func NewClientRepository(db *gorm.DB) *DBClientRepository {
+func NewClientRepository() *DBClientRepository {
+	db := DefaultDB()
 	return &DBClientRepository{DB: db}
 }
 func (r *DBClientRepository) GetClientByClientID(id string) (model.IClient, error) {

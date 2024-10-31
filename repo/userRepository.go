@@ -16,7 +16,8 @@ type DBUserRepository struct {
 	DB *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *DBUserRepository {
+func NewUserRepository() *DBUserRepository {
+	db := DefaultDB()
 	return &DBUserRepository{DB: db}
 }
 func (repo *DBUserRepository) GetUser(userId string) (model.IUser, error) {

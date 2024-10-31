@@ -12,7 +12,8 @@ type DBConsentRepository struct {
 	DB *gorm.DB
 }
 
-func NewConsentRepository(db *gorm.DB) *DBConsentRepository {
+func NewConsentRepository() *DBConsentRepository {
+	db := DefaultDB()
 	return &DBConsentRepository{DB: db}
 }
 

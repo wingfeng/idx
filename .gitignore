@@ -4,3 +4,5 @@ cmd/__debug_bin
 cmd/cmd.exe
 cmd/idx.exe
 vendor/
+certs/*
+.vscode/*

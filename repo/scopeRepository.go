@@ -9,7 +9,8 @@ type DBScopeRepository struct {
 	DB *gorm.DB
 }
 
-func NewScopeRepository(db *gorm.DB) *DBScopeRepository {
+func NewScopeRepository() *DBScopeRepository {
+	db := DefaultDB()
 	return &DBScopeRepository{
 		DB: db,
 	}
