@@ -11,7 +11,7 @@ import (
 type User struct {
 	OUId                 snowflake.ID   `json:"ouid" gorm:"column:ou_id;"`
 	OU                   string         `json:"ou" gorm:"type:varchar(256)"`
-	UserName             string         `json:"account" gorm:"type:varchar(256)"`
+	UserName             string         `json:"userName" gorm:"type:varchar(256)"`
 	DisplayName          string         `json:"displayname" gorm:"type:varchar(256)"`
 	Email                string         `json:"email" gorm:"type:varchar(256)"`
 	EmailConfirmed       bool           `json:"emailconfirmed" gorm:"not null"`
@@ -76,3 +76,12 @@ func (r *User) BeforeUpdate(tx *gorm.DB) error {
 func (r *User) GetPasswordHash() string {
 	return r.PasswordHash
 }
+
+// func (u *User) MarshalBinary() ([]byte, error) {
+
+// 	return json.Marshal(u)
+// }
+
+// func (u *User) UnmarshalBinary(data []byte) error {
+// 	return json.Unmarshal(data, u)
+// }

@@ -1,35 +1,34 @@
 package cache
 
 import (
-	"context"
-	"sync"
-	"time"
+	"fmt"
+
+	_ "github.com/gogf/gf/contrib/nosql/redis/v2"
+	"github.com/gogf/gf/v2/database/gredis"
+	"github.com/gogf/gf/v2/os/gcache"
+	"github.com/wingfeng/idx/conf"
 )
 
-type ICacheProvider interface {
-	Get(key string) (interface{}, bool)
-	Set(key string, value interface{}, duration time.Duration)
-}
+var Service *gcache.Cache
 
-type CacheHelper struct {
-	Provider ICacheProvider
-}
+func init() {
+	option := conf.Options
 
-func (ch *CacheHelper) Get(context context.Context, key string, GetFunc func(key string) interface{}, duration time.Duration) (interface{}, error) {
-	if ch.Provider != nil {
-		result, exist := ch.Provider.Get(key)
-		if exist && result != nil {
-			return result, nil
+	link := fmt.Sprintf("%s:%d", option.RedisHost, option.RedisPort)
+	var (
+		err error
+
+		redisConfig = &gredis.Config{
+			Address: link,
+			Db:      option.RedisDB,
 		}
+	)
+	Service = gcache.New()
+	// Create redis client object.
+	redis, err := gredis.New(redisConfig)
+	if err != nil {
+		panic(err)
 	}
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	c := make(chan interface{})
-	go func(k string) {
-		obj := GetFunc(k)
-		c <- obj
-	}(key)
-	obj := <-c
-	ch.Provider.Set(key, obj, duration)
-	return obj, nil
+	// Create redis cache adapter and set it to cache object.
+	Service.SetAdapter(gcache.NewAdapterRedis(redis))
 }

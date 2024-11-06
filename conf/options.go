@@ -20,10 +20,10 @@ type Option struct {
 	RedisDB        int
 }
 
-var Default *Option
+var Options *Option
 
 func init() {
-	Default = initConfig()
+	Options = initConfig()
 }
 
 func initConfig() *Option {

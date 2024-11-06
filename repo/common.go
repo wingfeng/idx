@@ -7,7 +7,7 @@ import (
 )
 
 func DefaultDB() *gorm.DB {
-	conn := conf.Default.Connection
-	driver := conf.Default.Driver
+	conn := conf.Options.Connection
+	driver := conf.Options.Driver
 	return utils.GetDB(driver, conn)
 }

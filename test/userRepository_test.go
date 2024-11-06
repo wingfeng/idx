@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wingfeng/idx-oauth2/model"
 	"github.com/wingfeng/idx/repo"
 )
 
@@ -23,11 +24,15 @@ func TestDBUserRepository_GetUserByUserName(t *testing.T) {
 	db := initTestDb()
 	repo := repo.NewUserRepository()
 	repo.DB = db
-
-	user, err := repo.GetUserByName("admin")
-	if err != nil {
-		t.Fatal(err)
+	var user model.IUser
+	var err error
+	for i := 0; i < 10; i++ {
+		user, err = repo.GetUserByName("admin")
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
+
 	t.Log(user)
 }
 
@@ -42,6 +47,7 @@ func TestChangePassword(t *testing.T) {
 	assert.NoError(t, err)
 	err = repo.ChangePassword("admin", resetedPwd, "password1")
 	assert.NoError(t, err)
+	t.Log(err)
 }
 func TestResetPassword(t *testing.T) {
 	db := initTestDb()

@@ -91,6 +91,7 @@ func TestSeedData(t *testing.T) {
 	role.Name = "科室主任"
 	addRole(role)
 	addUserRole(user.Id, role.Id)
+	addClient("adminui", "secret", "authorization_code", t)
 	addClient("implicit_client", "secret", "implicit", t)
 	addClient("hybrid_client", "secret", "authorization_code implicit "+string(constants.DeviceCode)+" password client_credential", t)
 	addClient("code_client", "secret", "authorization_code", t)
@@ -106,7 +107,7 @@ func seedScopes() {
 	scope.Name = "openid"
 	scope.Description = "openid scope,essential item do not  modify and delete"
 	scope.Enabled = true
-	scope.Properties = datatypes.JSON([]byte(`{"essential":"true"}`))
+	scope.Properties = datatypes.JSON([]byte(`{"essential":true}`))
 
 	db.Table("scopes").Save(scope)
 
@@ -151,10 +152,16 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 
 		GrantTypes: grantType,
 
-		Scopes:         "openid email profile roles",
-		RequireConsent: true,
-		RequireSecret:  requireSecret,
+		Scopes:               "openid email profile roles",
+		RequireConsent:       true,
+		AllowRememberConsent: true,
+		RequireSecret:        requireSecret,
 		//UserSsoLifetime: , can be zero
+	}
+	if clientId == "adminui" {
+		client.ClientName = "IDX Admin UI"
+		client.Properties = datatypes.JSON(`{"essential":true}`)
+		client.RequireConsent = false
 	}
 
 	var result *gorm.DB
