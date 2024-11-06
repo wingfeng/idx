@@ -22,6 +22,7 @@ import (
 	"github.com/wingfeng/idx-oauth2/service/impl"
 	myConf "github.com/wingfeng/idx/conf"
 	"github.com/wingfeng/idx/controller"
+	"github.com/wingfeng/idx/ldap"
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/models/dto"
 	"github.com/wingfeng/idx/repo"
@@ -54,7 +55,7 @@ func main() {
 		Version()
 		return
 	}
-	option := myConf.Default
+	option := myConf.Options
 	redisLink := fmt.Sprintf("%s:%d", option.RedisHost, option.RedisPort)
 
 	if *syncDb {
@@ -122,27 +123,33 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(302, "/idx")
 	})
-	slog.Info("Server is running at", "port", option.Port)
 
-	address := fmt.Sprintf("%s:%d", "", option.Port)
-	//l := logger{}
-	//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
-	err = router.Run(address)
-	//err = http.ListenAndServe(address, handler) //accesslog.NewLoggingHandler(handler, l))
-	if err != nil {
-		slog.Error("Server Error", "error", err)
-	}
+	go func() {
+		address := fmt.Sprintf("%s:%d", "", option.Port)
+		slog.Info("Server is running at", "port", option.Port)
+
+		//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
+		err = router.Run(address)
+
+		if err != nil {
+			slog.Error("Server Error", "error", err)
+		}
+
+	}()
+
+	//start LDAP Server
+	ldap.StartLdapServer(us)
 
 }
 func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (service.TokenService, *conf.JWKS) {
 	//load private key from pem file
 	var privateKey *rsa.PrivateKey
-	privateKeyPEM, _ := os.ReadFile(myConf.Default.PrivateKeyPath)
+	privateKeyPEM, _ := os.ReadFile(myConf.Options.PrivateKeyPath)
 
 	block, _ := pem.Decode(privateKeyPEM)
 	if block == nil || block.Type != "RSA PRIVATE KEY" {
 		slog.Error("failed to decode PEM block containing private key\n gernerating a new private key")
-		privateKey = generatePrivateKey(myConf.Default.PrivateKeyPath)
+		privateKey = generatePrivateKey(myConf.Options.PrivateKeyPath)
 	} else {
 		privateKey, _ = x509.ParsePKCS1PrivateKey(block.Bytes)
 	}
