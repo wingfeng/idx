@@ -156,3 +156,32 @@ func (repo *DBUserRepository) GetUserPasswordHash(username string) (string, erro
 	return r.String(), err
 
 }
+
+func (repo *DBUserRepository) SearchUsers(filters *models.Expression, skip int, take int) ([]models.User, error) {
+	result := make([]models.User, 0)
+	tx := repo.DB.Model(&models.User{})
+	tx = buildExpression(filters, tx)
+	tx.Offset(skip).Limit(take).Find(&result)
+
+	return result, tx.Error
+}
+func buildExpression(filter *models.Expression, tx *gorm.DB) *gorm.DB {
+	if filter != nil {
+
+		for _, v := range filter.Children {
+			if v.IsLogical() {
+				tx = buildExpression(&v, tx)
+			} else {
+				s := fmt.Sprintf(" %s %s ?", v.Column, v.Operator)
+				if filter.Operator == "and" {
+					tx = tx.Where(s, v.Value)
+				} else if filter.Operator == "or" {
+					tx = tx.Or(s, v.Value)
+				}
+
+			}
+		}
+
+	}
+	return tx
+}

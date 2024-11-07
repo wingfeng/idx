@@ -22,7 +22,7 @@ import (
 	"github.com/wingfeng/idx-oauth2/service/impl"
 	myConf "github.com/wingfeng/idx/conf"
 	"github.com/wingfeng/idx/controller"
-	"github.com/wingfeng/idx/ldap"
+
 	"github.com/wingfeng/idx/models"
 	"github.com/wingfeng/idx/models/dto"
 	"github.com/wingfeng/idx/repo"
@@ -124,21 +124,17 @@ func main() {
 		c.Redirect(302, "/idx")
 	})
 
-	go func() {
-		address := fmt.Sprintf("%s:%d", "", option.Port)
-		slog.Info("Server is running at", "port", option.Port)
+	address := fmt.Sprintf("%s:%d", "", option.Port)
+	slog.Info("Server is running at", "port", option.Port)
 
-		//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
-		err = router.Run(address)
+	//	router.RunTLS(address, "../certs/ca/localhost/localhost.crt", "../certs/ca/localhost/localhost.key")
+	err = router.Run(address)
 
-		if err != nil {
-			slog.Error("Server Error", "error", err)
-		}
-
-	}()
+	if err != nil {
+		slog.Error("Server Error", "error", err)
+	}
 
 	//start LDAP Server
-	ldap.StartLdapServer(us)
 
 }
 func buildTokenService(config *conf.Config, userRepo *repo.DBUserRepository) (service.TokenService, *conf.JWKS) {

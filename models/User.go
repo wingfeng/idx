@@ -1,6 +1,9 @@
 package models
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/bwmarrin/snowflake"
 	"gopkg.in/guregu/null.v4"
 	"gorm.io/datatypes"
@@ -33,8 +36,8 @@ type User struct {
 }
 
 // implement base.Row GetID
-func (m *User) GetID() interface{} {
-	return m.Id
+func (m *User) GetId() string {
+	return strconv.Itoa(int(m.Id))
 }
 
 // func (m *User) GetID() interface{} {
@@ -66,13 +69,12 @@ func (r *User) BeforeUpdate(tx *gorm.DB) error {
 	return nil
 }
 
-//	func (r *User) GetUserName() string {
-//		return r.NormalizedAccount
-//	}
-//
-//	func (r *User) GetEmail() string {
-//		return r.Email
-//	}
+func (r *User) GetUserName() string {
+	return strings.ToLower(r.UserName)
+}
+func (r *User) GetEmail() string {
+	return r.Email
+}
 func (r *User) GetPasswordHash() string {
 	return r.PasswordHash
 }
