@@ -7,7 +7,7 @@ import (
 
 // Role [...]
 type Role struct {
-	Name            string `gorm:"type:varchar(256)"`
+	Name            string `gorm:"type:varchar(256);unique"`
 	Description     string `gorm:"type:varchar(256)"`
 	Users           []User `gorm:"many2many:user_roles;"`
 	Claims          datatypes.JSON

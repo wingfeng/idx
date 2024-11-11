@@ -169,7 +169,9 @@ func buildExpression(filter *models.Expression, tx *gorm.DB) *gorm.DB {
 	if filter != nil {
 
 		for _, v := range filter.Children {
-			if v.IsLogical() {
+			if strings.EqualFold(v.Column, "objectclass") {
+				continue
+			} else if v.IsLogical() {
 				tx = buildExpression(&v, tx)
 			} else {
 				s := fmt.Sprintf(" %s %s ?", v.Column, v.Operator)

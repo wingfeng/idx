@@ -162,6 +162,7 @@ func addClient(clientId, secret, grantType string, t *testing.T) {
 		client.ClientName = "IDX Admin UI"
 		client.Properties = datatypes.JSON(`{"essential":true}`)
 		client.RequireConsent = false
+		client.RequireSecret = false
 	}
 
 	var result *gorm.DB

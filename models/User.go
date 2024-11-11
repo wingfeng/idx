@@ -16,7 +16,7 @@ type User struct {
 	OU                   string         `json:"ou" gorm:"type:varchar(256)"`
 	UserName             string         `json:"userName" gorm:"type:varchar(256)"`
 	DisplayName          string         `json:"displayname" gorm:"type:varchar(256)"`
-	Email                string         `json:"email" gorm:"type:varchar(256)"`
+	Email                string         `json:"email" gorm:"type:varchar(256);unique"`
 	EmailConfirmed       bool           `json:"emailconfirmed" gorm:"not null"`
 	PasswordHash         string         `json:"-" gorm:"type:text"`
 	PhoneNumber          string         `json:"phonenumber" gorm:"type:text"`
